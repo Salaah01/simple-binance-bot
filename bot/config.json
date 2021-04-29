@@ -1,15 +1,21 @@
 {
   "defaults": {
     "trade_quantity": 0.05,
-    "trade_symbol": "XRPGBP",
+    "trade_symbol": "MATICUSDT",
     "interval": "1m",
-    "socket_address": "wss://stream.binance.com:9443/ws/xrpgbp@kline_1m"
+    "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_1m"
   },
   "strategies": {
     "rsi": {
       "period": 14,
       "overbought": 70,
       "oversold": 30
+    },
+    "bollinger": {
+      "period": 20,
+      "nbdevup": 2,
+      "nbdevdn": 2,
+      "matype": 0
     }
   }
 }

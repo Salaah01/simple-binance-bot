@@ -1,5 +1,13 @@
 {
   "cSpell.words": [
-    "Strat"
-  ]
+    "BBANDS",
+    "Strat",
+    "matype",
+    "nbdevdn",
+    "nbdevup",
+    "noqa",
+    "talib"
+  ],
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true
 }
