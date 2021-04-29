@@ -1,0 +1,15 @@
+{
+  "defaults": {
+    "trade_quantity": 0.05,
+    "trade_symbol": "XRPGBP",
+    "interval": "1m",
+    "socket_address": "wss://stream.binance.com:9443/ws/xrpgbp@kline_1m"
+  },
+  "strategies": {
+    "rsi": {
+      "period": 14,
+      "overbought": 70,
+      "oversold": 30
+    }
+  }
+}
