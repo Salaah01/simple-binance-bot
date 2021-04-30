@@ -5,5 +5,4 @@ services:
     build: ./bot/.
     volumes:
       - ./bot/logs/:/app/logs
-    env_file: ./bot/env_vars.env
     command: python3 ./controller.py $TRADE_SYMBOL
