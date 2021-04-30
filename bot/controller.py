@@ -73,11 +73,16 @@ class Controller:
         tradeSym = self.get_config()['defaults']['trade_symbol']
         timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
 
-        return open(
+        dataset = open(
             os.path.join('logs', f'{tradeSym}_{timestamp}_dataset.csv'),
             'a',
             buffering=1
         )
+        columnHeadings = ['Timestamp', 'Close', 'RSI Value', 'RSI Decision',
+                          'Bollinger High', 'Bollinger Low',
+                          'Bollinger Decision']
+        dataset.write(f"{'|'.join(columnHeadings)}\n")
+        return dataset
 
     def log(self, msg: str) -> None:
         """Logs a new entry."""
@@ -138,9 +143,6 @@ class Controller:
             bollResult = bollinger(
                 closes,
                 bollStrat['period'],
-                bollStrat['nbdevup'],
-                bollStrat['nbdevdn'],
-                bollStrat['matype'],
                 self.ownCoins,
                 self.log
             )
@@ -148,16 +150,23 @@ class Controller:
             # Execute buy/sell order
             if rsiResult.decision == 1 and bollResult.decision == 1:
                 self.log('CONTROLLER: BUY')
+                print('\033[92mBUY\033[0m')
                 self.ownCoins = True
             elif rsiResult.decision == -1 and bollResult.decision == -1:
                 self.log('CONTROLLER: SELL')
+                print('\033[92mSELL\033[0m')
                 self.ownCoins = False
 
             # Update the dataset.
-            self.add_dataset(f'{float(close)}|{rsiResult.rsi}|{rsiResult.decision}|{bollResult.boll_value}|{bollResult.decision}')
+            dataset = [float(close), rsiResult.rsi, rsiResult.decision,
+                       bollResult.high, bollResult.low, bollResult.decision]
+            dataset = [str(data) for data in dataset]
+            self.add_dataset('|'.join(dataset))
 
         except Exception:
-            self.log_error(traceback.format_exc())
+            err = traceback.format_exc()
+            self.log_error(err)
+            print(f'\033[92m{err}\033[0m')
 
     def run(self):
         ws = websocket.WebSocketApp(

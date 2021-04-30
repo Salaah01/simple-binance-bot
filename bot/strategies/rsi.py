@@ -20,7 +20,7 @@ def rsi(
     outputFields = ['rsi', 'decision']
 
     if len(npCloses) < period:
-        return namedtuple('rsi', outputFields)(None, 0)
+        return namedtuple('rsi', outputFields)('', 0)
 
     rsi = talib.RSI(npCloses, period)
     lastRSI = rsi[-1]

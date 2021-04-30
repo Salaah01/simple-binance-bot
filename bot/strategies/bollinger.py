@@ -1,15 +1,12 @@
 from typing import Callable, Optional
 from collections import namedtuple
 import numpy as np
-from talib import BBANDS
+import pandas as pd
 
 
 def bollinger(
     npCloses: np.array,
     period: int,
-    nbdevup: int,
-    nbdevdn: int,
-    matype: int,
     coinsOwned: bool,
     log: Optional[Callable]
 ) -> int:
@@ -17,22 +14,39 @@ def bollinger(
         def log(msg):
             print(msg)
 
-    outputFields = ['boll_value', 'decision']
+    outputFields = ['high', 'low', 'decision']
 
     if len(npCloses) < period + 1:
-        return namedtuple('bollinger', outputFields)(None, 0)
+        return namedtuple('bollinger', outputFields)('', '', 0)
 
-    up, mid, low = BBANDS(npCloses[:-1], period, nbdevup, nbdevdn, matype)
-    bbp = (npCloses[-1] - low) / (up - low)
-    log(f'BOLLINGER: BBP {bbp}')
+    df = pd.DataFrame(npCloses, columns=['Close'])
 
-    if npCloses[-1] > bbp[-1] and npCloses[-1] >= npCloses[-2] and not coinsOwned:
-        log('BOLLINGER: BUY')
-        return namedtuple('bollinger', outputFields)(bbp[-1], 1)
+    # Calculate simple moving average, standard deviation, upper and lower
+    # bands.
+    df['SMA'] = df['Close'].rolling(window=period).mean()
+    df['STD'] = df['Close'].rolling(window=period).std()
+    df['Upper'] = df['SMA'] + (df['STD'] * 2)
+    df['Lower'] = df['SMA'] - (df['STD'] * 2)
 
-    elif npCloses[-1] < bbp[-2] and npCloses[-1] <= npCloses[-2] and coinsOwned:
+    log(f'BOLLINGER: Upper={df["Upper"]} Lower={df["Lower"]}')
+
+    # Calculate buy/sell signals.
+    if df['Close'].iat[-1] > df['Upper'].iat[-1] and coinsOwned:
         log('BOLLINGER: SELL')
-        return namedtuple('bollinger', outputFields)(bbp[-1], -1)
+        return namedtuple(
+            'bollinger',
+            outputFields
+        )(df['Upper'].iat[-1], df['Lower'].iat[-1], -1)
+
+    elif df['Close'].iat[-1] < df['Lower'].iat[-1] and not coinsOwned:
+        log('BOLLINGER: BUY')
+        return namedtuple(
+            'bollinger',
+            outputFields
+        )(df['Upper'].iat[-1], df['Lower'].iat[-1], 1)
 
     else:
-        return namedtuple('bollinger', outputFields)(bbp[-1], 0)
+        return namedtuple(
+            'bollinger',
+            outputFields
+        )(df['Upper'].iat[-1], df['Lower'].iat[-1], 0)
