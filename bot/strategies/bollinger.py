@@ -1,4 +1,5 @@
 from typing import Callable, Optional
+from collections import namedtuple
 import numpy as np
 from talib import BBANDS
 
@@ -16,8 +17,10 @@ def bollinger(
         def log(msg):
             print(msg)
 
+    outputFields = ['boll_value', 'decision']
+
     if len(npCloses) < period + 1:
-        return 0
+        return namedtuple('bollinger', outputFields)(None, 0)
 
     up, mid, low = BBANDS(npCloses[:-1], period, nbdevup, nbdevdn, matype)
     bbp = (npCloses[-1] - low) / (up - low)
@@ -25,11 +28,11 @@ def bollinger(
 
     if npCloses[-1] > bbp[-1] and npCloses[-1] >= npCloses[-2] and not coinsOwned:
         log('BOLLINGER: BUY')
-        return -1
+        return namedtuple('bollinger', outputFields)(bbp[-1], 1)
 
     elif npCloses[-1] < bbp[-2] and npCloses[-1] <= npCloses[-2] and coinsOwned:
         log('BOLLINGER: SELL')
-        return 1
+        return namedtuple('bollinger', outputFields)(bbp[-1], -1)
 
     else:
-        return 0
+        return namedtuple('bollinger', outputFields)(bbp[-1], 0)

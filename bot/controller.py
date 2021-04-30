@@ -19,6 +19,7 @@ class Controller:
         self._config = self._set_config(tradeSym)
         self._logger = self._set_logger()
         self._errLogger = self._set_error_logger()
+        self._outputDataset = self._set_output_dataset()
 
     @staticmethod
     def _set_config(tradeSym) -> dict:
@@ -67,6 +68,17 @@ class Controller:
             buffering=1
         )
 
+    def _set_output_dataset(self):
+        """Creates and opens the log."""
+        tradeSym = self.get_config()['defaults']['trade_symbol']
+        timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
+
+        return open(
+            os.path.join('logs', f'{tradeSym}_{timestamp}_dataset.csv'),
+            'a',
+            buffering=1
+        )
+
     def log(self, msg: str) -> None:
         """Logs a new entry."""
         self._logger.write(f'{self.timestamp()}\t{msg}\n')
@@ -76,14 +88,18 @@ class Controller:
         print(msg)
         self._errLogger.write(f'{self.timestamp()}\t{msg}\n')
 
+    def add_dataset(self, msg) -> None:
+        """Adds to the dataset."""
+        self._outputDataset.write(f'{self.timestamp()}|{msg}\n')
+
     @staticmethod
     def on_open(ws):
         """Method to run when the socket is opened."""
         print('connection opened.')
 
-    @staticmethod
-    def on_close(ws):
+    def on_close(self, ws):
         """Method to run when the socket is closed."""
+        self._logger.close()
         print('connection closed.')
 
     def on_message(self, ws, message):
@@ -95,10 +111,9 @@ class Controller:
 
             if not candle['x']:
                 return
-            
+
             close = candle['c']
-            
-            
+
             self.log(f'CONTROLLER: CLOSED AT {close}')
             print(
                 f'{self.get_config()["defaults"]["trade_symbol"]} CLOSED AT: {close}'
@@ -131,12 +146,15 @@ class Controller:
             )
 
             # Execute buy/sell order
-            if rsiResult == 1 and bollResult == 1:
+            if rsiResult.decision == 1 and bollResult.decision == 1:
                 self.log('CONTROLLER: BUY')
                 self.ownCoins = True
-            elif rsiResult == -1 and bollResult == -1:
+            elif rsiResult.decision == -1 and bollResult.decision == -1:
                 self.log('CONTROLLER: SELL')
                 self.ownCoins = False
+
+            # Update the dataset.
+            self.add_dataset(f'{float(close)}|{rsiResult.rsi}|{rsiResult.decision}|{bollResult.boll_value}|{bollResult.decision}')
 
         except Exception:
             self.log_error(traceback.format_exc())

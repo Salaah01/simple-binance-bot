@@ -1,4 +1,5 @@
 from typing import Callable, Optional
+from collections import namedtuple
 import talib
 import numpy as np
 
@@ -16,8 +17,10 @@ def rsi(
         def log(msg):
             print(msg)
 
+    outputFields = ['rsi', 'decision']
+
     if len(npCloses) < period:
-        return 0
+        return namedtuple('rsi', outputFields)(None, 0)
 
     rsi = talib.RSI(npCloses, period)
     lastRSI = rsi[-1]
@@ -25,11 +28,11 @@ def rsi(
 
     if lastRSI >= overboughtLimit and coinsOwned:
         log('RSI: SELL')
-        return -1
+        return namedtuple('rsi', outputFields)(lastRSI, -1)
 
     elif lastRSI <= oversoldLimit and not coinsOwned:
         log('RSI: BUY')
-        return 1
+        return namedtuple('rsi', outputFields)(lastRSI, 1)
 
     else:
-        return 0
+        return namedtuple('rsi', outputFields)(lastRSI, 0)
