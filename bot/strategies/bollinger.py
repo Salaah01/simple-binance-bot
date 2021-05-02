@@ -28,7 +28,7 @@ def bollinger(
     df['Upper'] = df['SMA'] + (df['STD'] * 2)
     df['Lower'] = df['SMA'] - (df['STD'] * 2)
 
-    log(f'BOLLINGER: Upper={df["Upper"]} Lower={df["Lower"]}')
+    log(f'BOLLINGER: Upper={df["Upper"].iat[-1]} Lower={df["Lower"].iat[-1]}')
 
     # Calculate buy/sell signals.
     if df['Close'].iat[-1] > df['Upper'].iat[-1] and coinsOwned:

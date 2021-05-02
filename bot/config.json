@@ -1,7 +1,9 @@
 {
   "defaults": {
     "trade_quantity": 0.05,
+    "asset": "MATIC",
     "trade_symbol": "MATICUSDT",
+    "amount": 35,
     "interval": "1m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_1m"
   },
