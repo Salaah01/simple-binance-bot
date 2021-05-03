@@ -1,15 +1,17 @@
 {
   "defaults": {
-    "trade_quantity": 0.05,
-    "asset": "MATIC",
-    "trade_symbol": "MATICUSDT",
-    "amount": 35,
+    "asset": "",
+    "trade_symbol": "",
     "interval": "1m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_1m"
   },
+  "buy_options": {
+    "test_mode": false,
+    "mode": "balance_percent"
+  },
   "strategies": {
     "rsi": {
-      "period": 14,
+      "period": 6,
       "overbought": 70,
       "oversold": 30
     },
