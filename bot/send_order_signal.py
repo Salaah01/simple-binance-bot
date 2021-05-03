@@ -29,7 +29,8 @@ class SendOrderSignal:
         side: str,
         tradeSymbol: str,
         quantity: float,
-        orderType=ORDER_TYPE_MARKET
+        testMode: bool,
+        orderType=ORDER_TYPE_MARKET,
     ):
         """Sends an order to buy/sell.
 
@@ -37,11 +38,21 @@ class SendOrderSignal:
             side - (str) Buy or sell command.
             tradeSymbol - (str) Trade symbol.
             quantity - (float) Quantity.
+            testMode: (bool) Run in test mode? If `True`, this will not create
+                live orders.
             orderType - (str) Order type, limit, market, etc.
         """
+
+        # Set the order method to use based on whether the order is a test
+        # order or not.
+        if testMode:
+            order = self.get_client().create_test_order
+        else:
+            order = self.get_client().create_order
+
         try:
             print("\033[94mSENDING SIGNAL.\033[0m")
-            res = self.get_client().create_order(
+            res = order(
                 symbol=tradeSymbol,
                 side=side,
                 type=orderType,

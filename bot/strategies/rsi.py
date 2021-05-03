@@ -10,7 +10,7 @@ def rsi(
     overboughtLimit: float,
     oversoldLimit: float,
     coinsOwned: bool,
-    log: Optional[Callable],
+    log: Optional[Callable] = None,
 ) -> int:
 
     if not log:

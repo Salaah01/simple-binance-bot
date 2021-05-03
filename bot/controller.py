@@ -2,47 +2,45 @@
 singals
 """
 
-from typing import Optional
-import sys
 import os
 import json
 import traceback
 from datetime import datetime
 import numpy as np
 import websocket
-from strategies import rsi, bollinger
 from send_order_signal import SendOrderSignal
 from binance.enums import SIDE_BUY, SIDE_SELL
+from strategies import rsi, bollinger
+from args_parser import args_parser
 
 
 class Controller:
-    def __init__(
-        self,
-        tradeSym: Optional[str] = None,
-        asset: Optional[str] = None
-    ):
+    def __init__(self, options):
         """Main controller that will maintain the connection, and send buy/sell
         singals.
 
         Args:
-            tradeSym - (str) Trade symbol (pair) to trade in.
-            asset - (str) Asset name to trade in.
+            options - (namespace) Collection of configuration options.
         """
         self.closes = []
-        self.ownCoins = False
+        self.ownCoins = options.coin_owned
 
-        self._config = self._set_config(tradeSym, asset)
+        self._config = self._set_config(options)
+
+        # Set common config options to the self object for easy referencing.
+        self._testMode = self.get_config()['buy_options']['test_mode']
+        self._tradeSym = self.get_config()['defaults']['trade_symbol']
+        self._asset = self.get_config()['defaults']['asset']
+
+        # Create loggers.
         self._logger = self._set_logger()
         self._errLogger = self._set_error_logger()
         self._outputDataset = self._set_output_dataset()
 
-        self.signalDispatcher = SendOrderSignal()
+        self._signalDispatcher = None
 
     @staticmethod
-    def _set_config(
-        tradeSym: Optional[str] = None,
-        asset: Optional[str] = None
-    ) -> dict:
+    def _set_config(options) -> dict:
         """Sets the config.
 
         Args:
@@ -59,19 +57,29 @@ class Controller:
 
         defaults = config['defaults']
 
-        # Update default values if provided.
-        if tradeSym:
-            defaults['trade_symbol'] = tradeSym.upper()
-        else:
-            tradeSym = defaults['trade_symbol']
-
-        if asset:
-            defaults['asset'] = asset
+        # Update default values frm the args.
+        defaults['trade_symbol'] = options.trade_symbol.upper()
+        defaults['asset'] = options.asset
 
         defaults['socket_address'] = defaults['socket_address'].replace(
             '{{trade_symbol}}',
-            tradeSym.lower()
+            options.trade_symbol.lower()
         )
+
+        # If buy options have provided in the CLI, then override the options
+        # defined in the config.
+        buyOpts = config['buy_options']
+        if options.buy_mode:
+            buyOpts['mod'] = options.buy_mode
+        if options.balance_percent:
+            buyOpts['balance_percent'] = options.balance_percent
+        if options.flat_amount:
+            buyOpts['flat_amount'] = options.flat_amount
+        if options.balance_percent:
+            buyOpts['balance_percent'] = options.balance_percent
+
+        # Update test mode.
+        buyOpts['test_mode'] = options.test_mode
 
         return config
 
@@ -80,35 +88,57 @@ class Controller:
         """Returns a string representation of the current timestamp."""
         return datetime.now().strftime('%Y-%m-%d %H:%M')
 
+    def test_logger(self):
+        """A logging object for testing. Instead of writing to a file, it will
+        mimic be behaviour, but instead write to stdout.
+        """
+
+        class Logger:
+            @staticmethod
+            def write(msg: str):
+                print(msg)
+
+            @staticmethod
+            def close():
+                pass
+
+        return Logger()
+
     def _set_logger(self):
         """Creates and opens the log."""
-        tradeSym = self.get_config()['defaults']['trade_symbol']
+        if self._testMode:
+            return self.test_logger()
+
         timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
 
         return open(
-            os.path.join('logs', f'{tradeSym}_{timestamp}.log'),
+            os.path.join('logs', f'{self._tradeSym}_{timestamp}.log'),
             'a',
             buffering=1
         )
 
     def _set_error_logger(self):
         """Creates and opens the error log."""
-        tradeSym = self.get_config()['defaults']['trade_symbol']
+        if self._testMode:
+            return self.test_logger()
+
         timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
 
         return open(
-            os.path.join('logs', f'{tradeSym}_{timestamp}.error.log'),
+            os.path.join('logs', f'{self._tradeSym}_{timestamp}.error.log'),
             'a',
             buffering=1
         )
 
     def _set_output_dataset(self):
         """Creates and opens the log."""
-        tradeSym = self.get_config()['defaults']['trade_symbol']
+        if self._testMode:
+            return self.test_logger()
+
         timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
 
         dataset = open(
-            os.path.join('logs', f'{tradeSym}_{timestamp}_dataset.csv'),
+            os.path.join('logs', f'{self._tradeSym}_{timestamp}_dataset.csv'),
             'a',
             buffering=1
         )
@@ -155,7 +185,38 @@ class Controller:
             ws - (websocket.WebSocketApp) Websocket object.
         """
         self._logger.close()
+        self._errLogger.close()
+        self._outputDataset.close()
         print('connection closed.')
+
+    def buy_quantity(self, closePrice: float) -> float:
+        """Calculates the buy quantity taking in consideration the price for
+        each coin and the buy strategy defined in the config.
+
+        Args:
+            closePrice - (float) The closing price of the coin.
+
+        Returns:
+            float - Quantity to buy.
+        """
+        buyOpts = self.get_config()['buy_options']
+
+        # If user choices a flat balance, then device the balance by the
+        # # closing price.
+        if buyOpts['mode'] == 'balance_amount':
+            quantity = buyOpts['flat_amount'] / float(closePrice)
+
+        # If user choices a balance percentage, fetch their balance, update the
+        # balance to invest by multiplying by the chosen percentage and then
+        # devide by the closing price.
+        elif buyOpts['mode'] == 'balance_percent':
+            balance = self._signalDispatcher.asset_balance(self._asset)
+            quantity = balance * buyOpts['balance_percent'] / 100 / closePrice
+
+        return self._signalDispatcher.apply_filters(
+            self._tradeSym,
+            quantity
+        )
 
     def on_message(self, ws: websocket.WebSocketApp, message: json) -> None:
         """Action to perform whenever a new message is received.
@@ -175,9 +236,8 @@ class Controller:
             close = candle['c']
 
             self.log(f'CONTROLLER: CLOSED AT {close}')
-            print(
-                f'{self.get_config()["defaults"]["trade_symbol"]} CLOSED AT: {close}'
-            )
+            print(f'{self._tradeSym} CLOSED AT: {close}')
+
             self.closes.append(float(close))
 
             closes = np.array(self.closes)
@@ -201,48 +261,16 @@ class Controller:
                 self.ownCoins,
                 self.log
             )
-
-            # ###################################################################
-            # quantity = round(
-            #     self.get_config()['defaults']['amount'] / float(close),
-            #     6
-            # )
-            # self.log(f'quantity 1: {quantity}')
-
-            # tradeSym = self.get_config(
-            # )['defaults']['trade_symbol'].upper()
-            # quantity = self.signalDispatcher.apply_filters(
-            #     tradeSym,
-            #     quantity
-            # )
-            # self.log(f'quantity 2: {quantity}')
-            # ###################################################################
-
             # Execute buy/sell order
             if rsiResult.decision == 1 and bollResult.decision == 1:
                 self.log('CONTROLLER: BUY')
                 print('\033[92mBUY\033[0m')
 
-                quantity = round(
-                    self.get_config()['defaults']['amount'] / float(close),
-                    6
-                )
-
-                self.log(f'CONTROLLER: SENDING {quantity} (quantity) to func.')
-                print(
-                    f'\033[94mCONTROLLER: SENDING {quantity} (quantity) to func.\033[0m')
-
-                quantity = self.signalDispatcher.apply_filters(
-                    self.get_config()['defaults']['trade_symbol'].upper(),
-                    quantity
-                )
-
-                self.log(f'Buying {quantity}')
-
-                res = self.signalDispatcher.send_signal(
+                res = self._signalDispatcher.send_signal(
                     SIDE_BUY,
-                    self.get_config()['defaults']['trade_symbol'].upper(),
-                    quantity
+                    self._tradeSym.upper(),
+                    self.buy_quantity(float(close)),
+                    self.get_config()['buy_options']['test_mode']
                 )
 
                 # Send buys signal.
@@ -254,22 +282,27 @@ class Controller:
                     self.ownCoins = False
                     self.log('SIGNAL: ERROR BUYING')
                     self.log_error(res['error'])
+                    self.log_error(res['params'])
 
             elif rsiResult.decision == -1 and bollResult.decision == -1:
-                self.log('CONTROLLER: SELL')
-                print('\033[92mSELL\033[0m')
+                # Get and sell the entire stock.
 
-                quantity = self.signalDispatcher.apply_filters(
-                    self.get_config()['defaults']['trade_symbol'].upper(),
-                    self.signalDispatcher.asset_balance(
-                        self.get_config()['defaults']['asset']
+                self.log('CONTROLLER: SELL')
+
+                quantity = self._signalDispatcher.apply_filters(
+                    self._tradeSym,
+                    self._signalDispatcher.asset_balance(
+                        self._tradeSym.replace(self._asset.upper(), '')
                     )
                 )
 
-                res = self.signalDispatcher.send_signal(
+                print(f'\033[92mSELLING {quantity}\033[0m')
+
+                res = self._signalDispatcher.send_signal(
                     SIDE_SELL,
-                    self.get_config()['defaults']['trade_symbol'].upper(),
-                    quantity
+                    self._tradeSym.upper(),
+                    quantity,
+                    self.get_config()['buy_options']['test_mode']
                 )
 
                 # Send sell signal
@@ -281,6 +314,7 @@ class Controller:
                     self.ownCoins = True
                     self.log('SIGNAL: ERROR SELLING')
                     self.log_error(res['error'])
+                    self.log_error(res['params'])
 
             # Update the dataset.
             dataset = [float(close), rsiResult.rsi, rsiResult.decision,
@@ -295,6 +329,7 @@ class Controller:
 
     def run(self):
         """Runs the trading process."""
+        self._signalDispatcher = SendOrderSignal()
         ws = websocket.WebSocketApp(
             self.get_config()['defaults']['socket_address'],
             on_open=self.on_open,
@@ -308,8 +343,9 @@ class Controller:
         return self._config
 
 
+def main():
+    Controller(args_parser()).run()
+
+
 if __name__ == '__main__':
-    if len(sys.argv) == 3:
-        Controller(sys.argv[1], sys.argv[2]).run()
-    else:
-        Controller().run()
+    main()
