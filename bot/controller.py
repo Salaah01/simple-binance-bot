@@ -31,6 +31,7 @@ class Controller:
         self._testMode = self.get_config()['buy_options']['test_mode']
         self._tradeSym = self.get_config()['defaults']['trade_symbol']
         self._asset = self.get_config()['defaults']['asset']
+        self._postRequests = self.get_config()['testing']['post_requests']
 
         # Create loggers.
         self._logger = self._set_logger()
@@ -266,55 +267,68 @@ class Controller:
                 self.log('CONTROLLER: BUY')
                 print('\033[92mBUY\033[0m')
 
-                res = self._signalDispatcher.send_signal(
-                    SIDE_BUY,
-                    self._tradeSym.upper(),
-                    self.buy_quantity(float(close)),
-                    self.get_config()['buy_options']['test_mode']
-                )
+                if self._postRequests:
+                    res = self._signalDispatcher.send_signal(
+                        SIDE_BUY,
+                        self._tradeSym.upper(),
+                        self.buy_quantity(float(close)),
+                        self.get_config()['buy_options']['test_mode']
+                    )
 
-                # Send buys signal.
-                if res['success']:
-                    self.ownCoins = True
-                    self.log('SIGNAL: BOUGHT')
-                    print('\033[92mSIGNAL BOUGHT.\033[0m')
+                    # Send buys signal.
+                    if res['success']:
+                        self.ownCoins = True
+                        self.log('SIGNAL: BOUGHT')
+                        print('\033[92mSIGNAL BOUGHT.\033[0m')
+                    else:
+                        self.ownCoins = False
+                        self.log('SIGNAL: ERROR BUYING')
+                        self.log_error(res['error'])
+                        self.log_error(res['params'])
+
                 else:
-                    self.ownCoins = False
-                    self.log('SIGNAL: ERROR BUYING')
-                    self.log_error(res['error'])
-                    self.log_error(res['params'])
+                    # The post request mode would equal False during testing,
+                    # so assume that the request has gone through.
+                    self.ownCoins = True
 
             elif rsiResult.decision == -1 and bollResult.decision == -1:
                 # Get and sell the entire stock.
 
                 self.log('CONTROLLER: SELL')
 
-                quantity = self._signalDispatcher.apply_filters(
-                    self._tradeSym,
-                    self._signalDispatcher.asset_balance(
-                        self._tradeSym.replace(self._asset.upper(), '')
+                if self._postRequests:
+
+                    quantity = self._signalDispatcher.apply_filters(
+                        self._tradeSym,
+                        self._signalDispatcher.asset_balance(
+                            self._tradeSym.replace(self._asset.upper(), '')
+                        )
                     )
-                )
 
-                print(f'\033[92mSELLING {quantity}\033[0m')
+                    print(f'\033[92mSELLING {quantity}\033[0m')
 
-                res = self._signalDispatcher.send_signal(
-                    SIDE_SELL,
-                    self._tradeSym.upper(),
-                    quantity,
-                    self.get_config()['buy_options']['test_mode']
-                )
+                    res = self._signalDispatcher.send_signal(
+                        SIDE_SELL,
+                        self._tradeSym.upper(),
+                        quantity,
+                        self.get_config()['buy_options']['test_mode']
+                    )
 
-                # Send sell signal
-                if res['success']:
-                    self.ownCoins = False
-                    self.log('SIGNAL: SOLD')
-                    print('\033[92mSIGNAL SOLD.\033[0m')
+                    # Send sell signal
+                    if res['success']:
+                        self.ownCoins = False
+                        self.log('SIGNAL: SOLD')
+                        print('\033[92mSIGNAL SOLD.\033[0m')
+                    else:
+                        self.ownCoins = True
+                        self.log('SIGNAL: ERROR SELLING')
+                        self.log_error(res['error'])
+                        self.log_error(res['params'])
+
                 else:
-                    self.ownCoins = True
-                    self.log('SIGNAL: ERROR SELLING')
-                    self.log_error(res['error'])
-                    self.log_error(res['params'])
+                    # The post request mode would equal False during testing,
+                    # so assume that the request has gone through.
+                    self.ownCoins = False
 
             # Update the dataset.
             dataset = [float(close), rsiResult.rsi, rsiResult.decision,

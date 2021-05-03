@@ -11,7 +11,7 @@
   },
   "strategies": {
     "rsi": {
-      "period": 6,
+      "period": 14,
       "overbought": 70,
       "oversold": 30
     },
@@ -21,5 +21,9 @@
       "nbdevdn": 2,
       "matype": 0
     }
+  },
+  "testing": {
+    "testing": false,
+    "post_requests": false
   }
 }
