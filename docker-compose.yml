@@ -4,5 +4,7 @@ services:
   bot:
     build: ./bot/.
     volumes:
-      - ./bot/logs/:/app/logs
-    command: python3 ./controller.py $TRADE_SYMBOL
+      - ./bot/:/app/
+    command: >
+      bash -c "python3 ./controller.py -h > usage.txt
+      && tail -F usage.txt"
