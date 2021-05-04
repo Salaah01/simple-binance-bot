@@ -31,7 +31,11 @@ class Controller:
         self._testMode = self.get_config()['buy_options']['test_mode']
         self._tradeSym = self.get_config()['defaults']['trade_symbol']
         self._asset = self.get_config()['defaults']['asset']
-        self._postRequests = self.get_config()['testing']['post_requests']
+
+        if not self.get_config()['testing']['testing']:
+            self._postRequests = True
+        else:
+            self._postRequests = self.get_config()['testing']['post_requests']
 
         # Create loggers.
         self._logger = self._set_logger()
@@ -71,7 +75,7 @@ class Controller:
         # defined in the config.
         buyOpts = config['buy_options']
         if options.buy_mode:
-            buyOpts['mod'] = options.buy_mode
+            buyOpts['mode'] = options.buy_mode
         if options.balance_percent:
             buyOpts['balance_percent'] = options.balance_percent
         if options.flat_amount:
