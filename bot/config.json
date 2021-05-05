@@ -2,8 +2,8 @@
   "defaults": {
     "asset": "",
     "trade_symbol": "",
-    "interval": "5m",
-    "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_5m"
+    "interval": "1m",
+    "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_1m"
   },
   "buy_options": {
     "test_mode": false,
@@ -22,7 +22,7 @@
       "matype": 0
     }
   },
-  "testing": {
+  "testing": {  
     "testing": false,
     "post_requests": false
   }
