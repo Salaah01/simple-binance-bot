@@ -76,26 +76,26 @@ Below is a outline of each configuration.
     "asset": "<< Trade currency e.g: gbp, btc, usdt >>",
     "trade_symbol": "<< Trade symbol e.g: btcusdt, dogegbp >>",
     "interval": "<< Interval e.g: << 1m, 3m, 5m, 4h >>",
-    "socket_address": "THIS SHOULD NOT BE CHANGED."
+    "socket_address": "THIS SHOULD NOT BE CHANGED.",
     "stop_loss_percent": "<< Stop loss percentage. 10 = 10%."
   },
   "buy_options": {
-    "test_mode": false, # Running on test mode?
+    "test_mode": "Running on test mode? (bool)", 
     "mode": "Trading mode. 'balance_percent' or 'balance_percent'"
   },
   "strategies": {
     "rsi": {
-      "period": 14, # RSI period
-      "overbought": 70, # RSI upper limit (overbought)
-      "oversold": 30 # RSI lower limit (oversold)
+      "period": "RSI period as an integer. e.g: 14",
+      "overbought": "RSI upper limit (overbought). e.g: 70",
+      "oversold": "RSI lower limit (oversold). e.g: 30"
     },
     "bollinger": {
-      "period": 20, # Bollinger period
+      "period": "Bollinger period. e.g: 20",
     }
   },
   "testing": {
-    "testing": false, # Running on test most?
-    "post_requests": false # Send post requests during test most?
+    "testing": "Running on test most? - (bool)",
+    "post_requests": "Send post requests during test most? (bool)"
   }
 }
 ```
