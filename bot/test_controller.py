@@ -8,8 +8,10 @@ from controller import Controller
 class SignalDispatcherOveride:
     """Overwrites the signal dispatcher class for testing."""
 
+    maxDiff = None
+
     @staticmethod
-    def get_asset_balance(_):
+    def asset_balance(_):
         return 100
 
     @staticmethod
@@ -72,19 +74,15 @@ class TestController(unittest.TestCase):
                 'asset': 'GBP',
                 'trade_symbol': 'ETHGBP',
                 'interval': '1m',
-                'socket_address': 'wss://stream.binance.com:9443/ws/ethgbp@kline_1m'
+                'socket_address': 'wss://stream.binance.com:9443/ws/ethgbp@kline_1m',
+                'stop_loss_percent': 10
             }
         )
 
-        self.assertEqual(
-            config['buy_options'],
-            {
-                'test_mode': True,
-                'mode': 'balance_percent',
-                'flat_amount': 10.99,
-                'balance_percent': 75.54
-            }
-        )
+        buyOpts = config['buy_options']
+        self.assertEqual(buyOpts['mode'], 'balance_percent')
+        self.assertEqual(buyOpts['flat_amount'], 10.99)
+        self.assertEqual(buyOpts['balance_percent'], 75.54)
 
     def test_buy_quantity_flat_amount(self):
         """Tests that a valid buy quantity is returned with a flat amount."""
@@ -97,6 +95,7 @@ class TestController(unittest.TestCase):
         """Tests that a valid buy quantity is returned with with the buying
         option set to balance percent.
         """
+        self.options.buy_mode = 'balance_percent'
 
         controller = self.controller(self.options)
         quantity = controller.buy_quantity(10)
