@@ -23,16 +23,21 @@ class Controller:
             options - (namespace) Collection of configuration options.
         """
         self.closes = []
+        self.purchasedPrice = 0
         self.ownCoins = options.coin_owned
 
         self._config = self._set_config(options)
 
         # Set common config options to the self object for easy referencing.
-        self._testMode = self.get_config()['buy_options']['test_mode']
+        self._testMode = self.get_config()['testing']['testing']
         self._tradeSym = self.get_config()['defaults']['trade_symbol']
         self._asset = self.get_config()['defaults']['asset']
 
-        if not self.get_config()['testing']['testing']:
+        # Caluclate stop loss multiplier.
+        self._stopLoss = self.get_config()['defaults']['stop_loss_percent']
+        self._stopLoss = (100 - float(self._stopLoss)) / 100
+
+        if not self._testMode:
             self._postRequests = True
         else:
             self._postRequests = self.get_config()['testing']['post_requests']
@@ -66,10 +71,9 @@ class Controller:
         defaults['trade_symbol'] = options.trade_symbol.upper()
         defaults['asset'] = options.asset
 
-        defaults['socket_address'] = defaults['socket_address'].replace(
-            '{{trade_symbol}}',
-            options.trade_symbol.lower()
-        )
+        defaults['socket_address'] = defaults['socket_address']\
+            .replace('{{trade_symbol}}', options.trade_symbol.lower())\
+            .replace('{{interval}}', defaults['interval'])
 
         # If buy options have provided in the CLI, then override the options
         # defined in the config.
@@ -84,7 +88,7 @@ class Controller:
             buyOpts['balance_percent'] = options.balance_percent
 
         # Update test mode.
-        buyOpts['test_mode'] = options.test_mode
+        config['testing']['testing'] = options.test_mode
 
         return config
 
@@ -238,12 +242,12 @@ class Controller:
             if not candle['x']:
                 return
 
-            close = candle['c']
+            close = float(candle['c'])
 
             self.log(f'CONTROLLER: CLOSED AT {close}')
             print(f'{self._tradeSym} CLOSED AT: {close}')
 
-            self.closes.append(float(close))
+            self.closes.append(close)
 
             closes = np.array(self.closes)
 
@@ -275,17 +279,22 @@ class Controller:
                     res = self._signalDispatcher.send_signal(
                         SIDE_BUY,
                         self._tradeSym.upper(),
-                        self.buy_quantity(float(close)),
-                        self.get_config()['buy_options']['test_mode']
+                        self.buy_quantity(close),
+                        self._testMode
                     )
 
                     # Send buys signal.
                     if res['success']:
                         self.ownCoins = True
+                        self.purchasedPrice = close
+
                         self.log('SIGNAL: BOUGHT')
                         print('\033[92mSIGNAL BOUGHT.\033[0m')
+
                     else:
                         self.ownCoins = False
+                        self.purchasedPrice = 0
+
                         self.log('SIGNAL: ERROR BUYING')
                         self.log_error(res['error'])
                         self.log_error(res['params'])
@@ -294,6 +303,7 @@ class Controller:
                     # The post request mode would equal False during testing,
                     # so assume that the request has gone through.
                     self.ownCoins = True
+                    self.purchasedPrice = close
 
             elif rsiResult.decision == -1 and bollResult.decision == -1:
                 # Get and sell the entire stock.
@@ -301,7 +311,6 @@ class Controller:
                 self.log('CONTROLLER: SELL')
 
                 if self._postRequests:
-
                     quantity = self._signalDispatcher.apply_filters(
                         self._tradeSym,
                         self._signalDispatcher.asset_balance(
@@ -315,14 +324,16 @@ class Controller:
                         SIDE_SELL,
                         self._tradeSym.upper(),
                         quantity,
-                        self.get_config()['buy_options']['test_mode']
+                        self._testMode
                     )
 
                     # Send sell signal
                     if res['success']:
                         self.ownCoins = False
+                        self.purchasedPrice = 0
                         self.log('SIGNAL: SOLD')
                         print('\033[92mSIGNAL SOLD.\033[0m')
+
                     else:
                         self.ownCoins = True
                         self.log('SIGNAL: ERROR SELLING')
@@ -333,9 +344,50 @@ class Controller:
                     # The post request mode would equal False during testing,
                     # so assume that the request has gone through.
                     self.ownCoins = False
+                    self.purchasedPrice = 0
+
+            # Stop loss
+            elif (self.purchasedPrice
+                    and close <= self.purchasedPrice * self._stopLoss):
+                print('\033[92mSELLING TO PREVENT STOP LOSS.\033[0m')
+
+                if self._postRequests:
+                    quantity = self._signalDispatcher.apply_filters(
+                        self._tradeSym,
+                        self._signalDispatcher.asset_balance(
+                            self._tradeSym.replace(self._asset.upper(), '')
+                        )
+                    )
+                    print(f'\033[92mSELLING {quantity}\033[0m')
+
+                    res = self._signalDispatcher.send_signal(
+                        SIDE_SELL,
+                        self._tradeSym.upper(),
+                        quantity,
+                        self._testMode
+                    )
+
+                    # Send sell signal
+                    if res['success']:
+                        self.ownCoins = False
+                        self.purchasedPrice = 0
+                        self.log('SIGNAL: SOLD')
+                        print('\033[92mSIGNAL SOLD.\033[0m')
+
+                    else:
+                        self.ownCoins = True
+                        self.log('SIGNAL: ERROR SELLING')
+                        self.log_error(res['error'])
+                        self.log_error(res['params'])
+
+                else:
+                    # The post request mode would equal False during testing,
+                    # so assume that the request has gone through.
+                    self.ownCoins = False
+                    self.purchasedPrice = 0
 
             # Update the dataset.
-            dataset = [float(close), rsiResult.rsi, rsiResult.decision,
+            dataset = [close, rsiResult.rsi, rsiResult.decision,
                        bollResult.high, bollResult.low, bollResult.decision]
             dataset = [str(data) for data in dataset]
             self.add_dataset('|'.join(dataset))

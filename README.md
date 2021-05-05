@@ -66,6 +66,40 @@ optional arguments:
   -o, --coin-owned      Coin is owned.
 ```
 
+**Configuration**
+Most of the configurations is handled by `./bot/config.json`.
+Below is a outline of each configuration.
+
+```json
+{
+  "defaults": {
+    "asset": "<< Trade currency e.g: gbp, btc, usdt >>",
+    "trade_symbol": "<< Trade symbol e.g: btcusdt, dogegbp >>",
+    "interval": "<< Interval e.g: << 1m, 3m, 5m, 4h >>",
+    "socket_address": "THIS SHOULD NOT BE CHANGED.",
+    "stop_loss_percent": "<< Stop loss percentage. 10 = 10%."
+  },
+  "buy_options": {
+    "test_mode": "Running on test mode? (bool)", 
+    "mode": "Trading mode. 'balance_percent' or 'balance_percent'"
+  },
+  "strategies": {
+    "rsi": {
+      "period": "RSI period as an integer. e.g: 14",
+      "overbought": "RSI upper limit (overbought). e.g: 70",
+      "oversold": "RSI lower limit (oversold). e.g: 30"
+    },
+    "bollinger": {
+      "period": "Bollinger period. e.g: 20",
+    }
+  },
+  "testing": {
+    "testing": "Running on test most? - (bool)",
+    "post_requests": "Send post requests during test most? (bool)"
+  }
+}
+```
+
 ## Disclaimer
 You are free to use this program as you wish but must understand the risks associated with using the program. I do not have a financial background and have no authority in advising when it is best to buy/sell assets.
 
