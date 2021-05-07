@@ -1,5 +1,6 @@
 """Connects and sends signals to the Binance server."""
 
+import math
 import json
 import traceback
 from binance.client import Client
@@ -82,7 +83,7 @@ class SendOrderSignal:
 
                 # Adding an higher level round to remove any floating point
                 # errors.
-                return round(round(quantity / stepSize) * stepSize, 6)
+                return round(math.floor(quantity / stepSize) * stepSize, 6)
         else:
             return quantity
 
