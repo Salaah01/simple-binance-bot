@@ -31,7 +31,7 @@ def bollinger(
     log(f'BOLLINGER: Upper={df["Upper"].iat[-1]} Lower={df["Lower"].iat[-1]}')
 
     # Calculate buy/sell signals.
-    if df['Close'].iat[-1] > df['Upper'].iat[-1] and coinsOwned:
+    if df['Close'].iat[-1] > df['Upper'].iat[-1] * 0.9 and coinsOwned:
         log('BOLLINGER: SELL')
         return namedtuple(
             'bollinger',

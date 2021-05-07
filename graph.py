@@ -1,10 +1,13 @@
+"""Script to show visual representation of the datasets that have been logged.
+"""
+
 import os
-import pylab as plt
 import numpy as np
 import pandas as pd
 
 
-csvPath = os.path.join('bot', 'logs', 'l.csv')
+fileName = input('Dataset file name: ')
+csvPath = os.path.join('bot', 'logs', fileName)
 df = pd.read_csv(csvPath, sep='|')
 
 
