@@ -13,8 +13,8 @@
   "strategies": {
     "rsi": {
       "period": 14,
-      "overbought": 70,
-      "oversold": 30
+      "overbought_limit": 70,
+      "oversold_limit": 30
     },
     "bollinger": {
       "period": 20

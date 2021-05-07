@@ -15,14 +15,12 @@ class Strategy(ABC):
         Args:
             logFn - (Callable) Logging function.
         """
-        self.log(logFn)
+        self._log = self._set_log(logFn)
 
-    @property
     def log(self):
         return self._log
 
-    @log.setter
-    def log(self, logFn: Union[Callable, None]) -> None:
+    def _set_log(self, logFn: Union[Callable, None]) -> None:
         """Checks if a logger has been provided, if not, defaults the logger
         behaviour to print any logging messages.
 
@@ -30,16 +28,25 @@ class Strategy(ABC):
             logFn - (Callable|None) Current logging function
         """
         if not logFn:
-            self._log = lambda msg: print(msg)
+            def log(msg):
+                return msg
+            return log
         else:
-            self._log = logFn
+            return logFn
 
     @abstractmethod
-    def apply_indicator(self, closePrices: np.array) -> dict:
+    def apply_indicator(
+        self,
+        closePrices: np.array,
+        config: dict,
+        coinsOwned: bool,
+    ) -> dict:
         """Abstract method where the indicator/strategy would be implemented.
 
         Args:
             closePrices - (np.array) Collection of closing prices.
+            config: - (dict) Configurations for the strategy.
+            coinsOwned - (bool) Is the coined/currency owned?
 
         Returns:
             A dictionary containing a `results` and `decision` key.

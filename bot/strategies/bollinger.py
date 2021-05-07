@@ -4,23 +4,28 @@ from typing import Callable, Optional
 from collections import namedtuple
 import numpy as np
 import pandas as pd
-from strategy_base import Strategy
+from .strategy_base import Strategy
 
 
 class Bollinger(Strategy):
-    """Applies the Bollinger stategory on a collection of closing prices."""
+    """Applies the Bollinger stategory onto a collection of closing prices."""
 
     def apply_indicator(
         self,
         npCloses: np.array,
-        period: int,
+        config: dict,
         coinsOwned: bool,
     ) -> dict:
+
+        period = config['period']
 
         # Edgecase
         if len(npCloses) < period + 1:
             return {'results': {'low': '', 'high': ''}, 'decision': 0}
 
+        # Convert the closing prices into a Pandas dataframe and add columns
+        # with certain statistical information that will help calculate the
+        # Bollinger value.
         df = pd.DataFrame(npCloses, columns=['Close'])
 
         df['SMA'] = df['Close'].rolling(window=period).mean()
@@ -34,26 +39,31 @@ class Bollinger(Strategy):
         # Calculate buy/sell signals.
         if df['Close'].iat[-1] > df['Upper'].iat[-1] * 0.9 and coinsOwned:
             self.log('BOLLINGER: SELL')
-            return {
-                'results': {
-                    'low': df['Lower'].iat[-1],
-                    'high': df['Upper'].iat[-1]
-                },
-                'decision': -1
-            }
+            decision = -1
 
         elif df['Close'].iat[-1] < df['Lower'].iat[-1] and not coinsOwned:
-            log('BOLLINGER: BUY')
-            return namedtuple(
-                'bollinger',
-                outputFields
-            )(df['Upper'].iat[-1], df['Lower'].iat[-1], 1)
+            self.log('BOLLINGER: BUY')
+            decision = 1
 
         else:
-            return namedtuple(
-                'bollinger',
-                outputFields
-            )(df['Upper'].iat[-1], df['Lower'].iat[-1], 0)
+            decision = 0
+
+        return {
+            'results': {
+                'low': df['Lower'].iat[-1],
+                'high': df['Upper'].iat[-1]
+            },
+            'decision': decision
+        }
+
+        self.log('BOLLINGER: SELL')
+        return {
+            'results': {
+                'low': df['Lower'].iat[-1],
+                'high': df['Upper'].iat[-1]
+            },
+            'decision': -1
+        }
 
 
 def bollinger(

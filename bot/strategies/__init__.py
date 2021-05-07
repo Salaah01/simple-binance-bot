@@ -1,3 +1,3 @@
 # flake8: noqa
-from .rsi import rsi
-from .bollinger import bollinger
+from .rsi import rsi, RSI
+from .bollinger import bollinger, Bollinger
