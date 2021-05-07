@@ -3,7 +3,8 @@
     "asset": "",
     "trade_symbol": "",
     "interval": "1m",
-    "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_1m"
+    "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_{{interval}}",
+    "stop_loss_percent": 10
   },
   "buy_options": {
     "test_mode": false,
@@ -16,10 +17,7 @@
       "oversold": 30
     },
     "bollinger": {
-      "period": 20,
-      "nbdevup": 2,
-      "nbdevdn": 2,
-      "matype": 0
+      "period": 20
     }
   },
   "testing": {
