@@ -1,6 +1,5 @@
 from typing import Callable, Optional
 from collections import namedtuple
-import talib
 import numpy as np
 from .strategy_base import Strategy
 
@@ -22,22 +21,57 @@ class RSI(Strategy):
 
         # Edgecase
         if len(npCloses) < period:
-            return {'results': {'rsi': ''}, 'decision': 0}
+            return {
+                'results': {'RSI Value': '', 'RSI Decision': 0},
+                'decision': 0
+            }
 
-        rsi = talib.RSI(npCloses, period)
-        lastRSI = rsi[-1]
-        self.log(f'RSI: {lastRSI}')
+        gains = []
+        loses = []
+        avgGains = []
+        avgLosses = []
+        relativeStrength = []
+        relativeStrengthIndex = []
 
-        if lastRSI >= overboughtLimit and coinsOwned:
+        if len(npCloses) >= 3 * period:
+            npCloses = npCloses[-(3*period):]
+
+        for c in range(1, len(npCloses)):
+            # Check gains / loses
+            if npCloses[c] >= npCloses[c-1]:
+                gains.append(npCloses[c] - npCloses[c-1])
+                loses.append(0)
+            else:
+                loses.append(npCloses[c-1] - npCloses[c])
+                gains.append(0)
+
+            # Check average gains / loses
+            if c == period:
+                avgGains.append(sum(gains) / period)
+                avgLosses.append(sum(loses) / period)
+            elif c > period:
+                avgGains.append(((avgGains[-1]*(period-1)+gains[-1])/period))
+                avgLosses.append(((avgLosses[-1]*(period-1)+loses[-1])/period))
+
+            # Calculates RS and RSI value
+            if c >= period:
+                relativeStrength.append(avgGains[-1]/avgLosses[-1])
+                relativeStrengthIndex.append(
+                    100 - (100 / (relativeStrength[-1] + 1)))
+
+        rsiValue = relativeStrengthIndex[-1]
+        self.log(f'RSI: {rsiValue}')
+
+        if rsiValue >= overboughtLimit and coinsOwned:
             self.log('RSI: SELL')
             decision = -1
-        elif lastRSI <= oversoldLimit and not coinsOwned:
+        elif rsiValue <= oversoldLimit and not coinsOwned:
             self.log('RSI: BUY')
             decision = 1
         else:
             decision = 0
 
         return {
-            'results': {'RSI Value': lastRSI, 'RSI Decision': decision},
+            'results': {'RSI Value': rsiValue, 'RSI Decision': decision},
             'decision': decision
         }
