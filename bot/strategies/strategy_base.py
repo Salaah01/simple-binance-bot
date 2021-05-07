@@ -1,6 +1,6 @@
 """Interface declares operations common to all strategies."""
 
-from typing import List, Optional, Callable, Union
+from typing import Optional, Callable, Union
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -17,8 +17,13 @@ class Strategy(ABC):
         """
         self._log = self._set_log(logFn)
 
-    def log(self):
-        return self._log
+    def log(self, msg: str) -> None:
+        """Logs a message.
+
+        Args:
+            msg - (str) Message to log.
+        """
+        self._log(msg)
 
     def _set_log(self, logFn: Union[Callable, None]) -> None:
         """Checks if a logger has been provided, if not, defaults the logger

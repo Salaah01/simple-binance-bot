@@ -11,7 +11,7 @@ import numpy as np
 import websocket
 from send_order_signal import SendOrderSignal
 from binance.enums import SIDE_BUY, SIDE_SELL
-from strategies import rsi, bollinger, RSI, Bollinger
+from strategies import RSI, Bollinger
 from args_parser import args_parser
 
 
@@ -252,12 +252,13 @@ class Controller:
             ))
         return stratResults
 
-    def action_decision(self, decisions: List[int]) -> None:
+    def action_decision(self, close: float, decisions: List[int]) -> None:
         """Using the results, check the buy/sell decisions returned by each
         strategy and take an appropriate action whether that be to do nothing,
         buy or sell.
 
         Args:
+            close - (float) Closing price
             decisions - (int[]) List of decisions.
         """
 
@@ -388,6 +389,8 @@ class Controller:
         """
 
         try:
+            # Retrieve data from the websocket and progress on once a closing
+            # price ha been registered.
             msg = json.loads(message)
             candle = msg['k']
 
@@ -400,12 +403,12 @@ class Controller:
             print(f'{self._tradeSym} CLOSED AT: {close}')
 
             self.closes.append(close)
-
             closes = np.array(self.closes)
 
             # Run each strategy and collect the results.
             stratResults = self.run_strategies(closes)
             self.action_decision(
+                close,
                 [stratResult['decision'] for stratResult in stratResults]
             )
             self.stop_loss(close)
@@ -432,12 +435,18 @@ class Controller:
                 headers += list(result['results'].keys())
 
             self.add_dataset('|'.join(headers))
-            self._datasetHeadCreated = False
+            self._datasetHeadCreated = True
 
         # Create a single string from all the results and log.
         resultVals = []
         for result in results:
             resultVals += list(result['results'].values())
+
+        # Casting each element into a string to ensure that there are no
+        # `np.float64` datatypes.
+        resultVals = [str(result) for result in resultVals]
+
+        # Convert any numpy floats to strings
         self.add_dataset('|'.join(resultVals))
 
     def run(self):
