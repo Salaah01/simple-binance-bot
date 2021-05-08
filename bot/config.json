@@ -2,7 +2,8 @@
   "defaults": {
     "interval": "1m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_{{interval}}",
-    "stop_loss_percent": 10
+    "stop_loss_percent": 10,
+    "closes_array_size": 25
   },
   "buy_options": {
     "test_mode": false,
@@ -25,6 +26,18 @@
   "trade_currencies": [
     "GBP",
     "USDT"
+  ],
+  "trade_symbols": [
+    "ETCUSDT",
+    "EOSUSDT",
+    "QTUMUSDT",
+    "THETAUSDT",
+    "CTSIUSDT",
+    "ONTUSDT",
+    "ZENUSDT",
+    "STORJUSDT",
+    "REEFUSDT",
+    "ZECUSDT"
   ],
   "trade_symbolss": [
     "SXPGBP",
@@ -72,9 +85,5 @@
     "AVAXUSDT",
     "NEOUSDT",
     "SRMUSDT"
-  ],
-  "trade_symbols": [
-    "SXPGBP",
-    "DOTGBP"
   ]
 }

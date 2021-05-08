@@ -73,11 +73,10 @@ Below is a outline of each configuration.
 ```json
 {
   "defaults": {
-    "asset": "<< Trade currency e.g: gbp, btc, usdt >>",
-    "trade_symbol": "<< Trade symbol e.g: btcusdt, dogegbp >>",
     "interval": "<< Interval e.g: << 1m, 3m, 5m, 4h >>",
     "socket_address": "THIS SHOULD NOT BE CHANGED.",
-    "stop_loss_percent": "<< Stop loss percentage. 10 = 10%."
+    "stop_loss_percent": "<< Stop loss percentage. 10 = 10%.",
+    "closes_array_size": "THIS SHOULD NOT BE CHANGED."
   },
   "buy_options": {
     "test_mode": "Running on test mode? (bool)", 
@@ -86,8 +85,8 @@ Below is a outline of each configuration.
   "strategies": {
     "rsi": {
       "period": "RSI period as an integer. e.g: 14",
-      "overbought": "RSI upper limit (overbought). e.g: 70",
-      "oversold": "RSI lower limit (oversold). e.g: 30"
+      "overbought_limit": "RSI upper limit (overbought). e.g: 70",
+      "oversold_limit": "RSI lower limit (oversold). e.g: 30"
     },
     "bollinger": {
       "period": "Bollinger period. e.g: 20",
@@ -96,7 +95,24 @@ Below is a outline of each configuration.
   "testing": {
     "testing": "Running on test most? - (bool)",
     "post_requests": "Send post requests during test most? (bool)"
-  }
+  },
+  "trade_currencies": [
+    "Currencies to trade in:",
+    "GBP",
+    "USDT"
+  ],
+  "trade_symbols": [
+    "ETCUSDT",
+    "EOSUSDT",
+    "QTUMUSDT",
+    "THETAUSDT",
+    "CTSIUSDT",
+    "ONTUSDT",
+    "ZENUSDT",
+    "STORJUSDT",
+    "REEFUSDT",
+    "ZECUSDT"
+  ]
 }
 ```
 
