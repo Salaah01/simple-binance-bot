@@ -28,18 +28,6 @@
     "USDT"
   ],
   "trade_symbols": [
-    "ETCUSDT",
-    "EOSUSDT",
-    "QTUMUSDT",
-    "THETAUSDT",
-    "CTSIUSDT",
-    "ONTUSDT",
-    "ZENUSDT",
-    "STORJUSDT",
-    "REEFUSDT",
-    "ZECUSDT"
-  ],
-  "trade_symbolss": [
     "SXPGBP",
     "DOTGBP",
     "BTCGBP",
@@ -84,6 +72,21 @@
     "FILUSDT",
     "AVAXUSDT",
     "NEOUSDT",
-    "SRMUSDT"
+    "SRMUSDT",
+    "ETCUSDT",
+    "EOSUSDT",
+    "QTUMUSDT",
+    "THETAUSDT",
+    "CTSIUSDT",
+    "ONTUSDT",
+    "ZENUSDT",
+    "STORJUSDT",
+    "REEFUSDT",
+    "ZECUSDT",
+    "ATOMUSDT",
+    "OMGUSDT",
+    "UNIUSDT",
+    "HOTUSDT",
+    "DASHUSDT"
   ]
 }

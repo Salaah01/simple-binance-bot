@@ -1,5 +1,4 @@
 from typing import Callable, Optional
-from collections import namedtuple
 import numpy as np
 from .strategy_base import Strategy
 
@@ -20,7 +19,7 @@ class RSI(Strategy):
         oversoldLimit = config['oversold_limit']
 
         # Edgecase
-        if len(npCloses) < period:
+        if len(npCloses) <= period:
             return {
                 'results': {'RSI Value': '', 'RSI Decision': 0},
                 'decision': 0

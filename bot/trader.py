@@ -293,7 +293,7 @@ class Trader:
             print('\033[92mSELLING TO PREVENT STOP LOSS.\033[0m')
 
             if self._postRequests:
-                quantity = self._signalDispatcher.apply_filters(
+                quantity = self.signalDispatcher.apply_filters(
                     self.tradeSymbol,
                     self.signalDispatcher.asset_balance(
                         self.tradeSymbol.replace(self.tradeSymbol, '')
@@ -456,6 +456,12 @@ class Trader:
             self.log(f'Set {self.tradeSymbol} to owned.')
             print(f'Set {self.tradeSymbol} to owned.')
 
+        # Loading historical data.
+        print(f'Loading historical data for {self.tradeSymbol}')
+        self.closes = self.signalDispatcher.historical_data(self.tradeSymbol)
+        print(f'Historical data loaded for {self.tradeSymbol}')
+
+
     def on_close(self, ws: websocket.WebSocketApp):
         """Method to run when the socket is closed.
 
@@ -507,7 +513,8 @@ class Trader:
 
     def run(self):
         """Runs the trading process."""
-        self._signalDispatcher = SendOrderSignal()
+        self.signalDispatcher = SendOrderSignal()
+
         ws = websocket.WebSocketApp(
             self.config['defaults']['socket_address'].replace(
                 '{{trade_symbol}}',

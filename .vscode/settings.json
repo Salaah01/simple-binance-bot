@@ -3,6 +3,7 @@
     "Strat",
     "Vals",
     "filt",
+    "klines",
     "noqa",
     "talib"
   ],

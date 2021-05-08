@@ -3,6 +3,7 @@
 import math
 import json
 import traceback
+from typing import List
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
 
@@ -130,14 +131,40 @@ class SendOrderSignal:
         Returns
             bool - Indicate whether the user has coins they can trade.
         """
-
         balance = float(
-            self.get_client().get_asset_balance(asset=asset)['free']
+            self.get_client().get_asset_balance(asset=tradeSymbol.replace(
+                asset,
+                ''
+            ))['free']
         )
 
         filters = self.get_client().get_symbol_info(tradeSymbol)['filters']
         for filt in filters:
             if filt['filterType'] == 'LOT_SIZE':
-                return balance >= filt['minQty']
+                return balance >= float(filt['minQty'])
         else:
             return True
+
+    def historical_data(
+        self,
+        tradeSymbol: str,
+        interval: str = Client.KLINE_INTERVAL_1MINUTE,
+        dateFromStr: str = '25 mins ago UTC'
+    ) -> List[float]:
+        """Returns a set of historical closing data.
+
+        Args:
+            tradeSymbol - (str) Trade symbol.
+            interval - (str) Interval.
+            dateFromStr - (str) Date from which to start collecting historical
+                data.
+
+        Returns:
+            list - Collection of closing prices.
+        """
+        data = self.get_client().get_historical_klines(
+            tradeSymbol,
+            interval,
+            dateFromStr
+        )
+        return [float(d[4]) for d in data]
