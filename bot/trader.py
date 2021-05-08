@@ -461,7 +461,6 @@ class Trader:
         self.closes = self.signalDispatcher.historical_data(self.tradeSymbol)
         print(f'Historical data loaded for {self.tradeSymbol}')
 
-
     def on_close(self, ws: websocket.WebSocketApp):
         """Method to run when the socket is closed.
 

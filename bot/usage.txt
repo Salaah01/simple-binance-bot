@@ -1,6 +1,5 @@
 usage: controller.py [-h] [-t] [-m {balance_amount,balance_percent}]
-                     [-p FLAT_AMOUNT] [-P BALANCE_PERCENT] -s TRADE_SYMBOL -A
-                     ASSET [-o]
+                     [-p FLAT_AMOUNT] [-P BALANCE_PERCENT]
 
 Arguments for setting up the Binance bot.
 
@@ -12,10 +11,5 @@ optional arguments:
   -p FLAT_AMOUNT, --flat-amount FLAT_AMOUNT
                         Flat amount to pay for each buy operation.
   -P BALANCE_PERCENT, --balance-percent BALANCE_PERCENT
-                        Percentage of available balance to use during buy
-                        operation (25=25%).
-  -s TRADE_SYMBOL, --trade-symbol TRADE_SYMBOL
-                        Trade symbol.
-  -A ASSET, --asset ASSET
-                        Asset.
-  -o, --coin-owned      Coin is owned.
+                        Percentage of available balance to use during buy operation
+                        (25=25%).

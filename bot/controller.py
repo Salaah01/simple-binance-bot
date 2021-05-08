@@ -57,7 +57,7 @@ def main():
     config = load_config(args_parser())
 
     processes = []
-    for tradeSymbol in config['trade_symbols']:
+    for tradeSymbol in set(config['trade_symbols']):
         process = Process(target=run_trader, args=[config, tradeSymbol])
         process.start()
         processes.append(process)
