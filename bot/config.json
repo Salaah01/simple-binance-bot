@@ -1,7 +1,5 @@
 {
   "defaults": {
-    "asset": "",
-    "trade_symbol": "",
     "interval": "1m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_{{interval}}",
     "stop_loss_percent": 10
@@ -28,7 +26,7 @@
     "GBP",
     "USDT"
   ],
-  "trade_symbols": [
+  "trade_symbolss": [
     "SXPGBP",
     "DOTGBP",
     "BTCGBP",
@@ -74,5 +72,9 @@
     "AVAXUSDT",
     "NEOUSDT",
     "SRMUSDT"
+  ],
+  "trade_symbols": [
+    "SXPGBP",
+    "DOTGBP"
   ]
 }

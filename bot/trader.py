@@ -1,12 +1,10 @@
 """Applies strategies and sends buy/sell orders for a single coin."""
 
 import os
-import json
 import traceback
-from typing import List
+from typing import List, Optional, Callable
 from datetime import datetime
 import numpy as np
-import websocket
 from send_order_signal import SendOrderSignal
 from binance.enums import SIDE_BUY, SIDE_SELL
 from strategies import RSI, Bollinger
@@ -19,7 +17,11 @@ class Trader:
         self,
         tradeSymbol: str,
         config: dict,
-        singalDispatcher: SendOrderSignal
+        singalDispatcher: SendOrderSignal,
+        log: Optional[Callable],
+        errorLog: Optional[Callable],
+        outputDataset: Optional[Callable],
+        createDataSetHeaders: bool = False,
     ) -> None:
         """Keeps track of the closing prices and sets certain objects to the
         `self` object for logging and easy referencing.
@@ -38,13 +40,6 @@ class Trader:
         # Vars to help keep a track of the state.
         self._closes = []
         self._purchasedPrice = 0
-
-        # Set common config options to the self object for easy referencing.
-        self._testMode = self.config['testing']['testing']
-        if not self._testMode:
-            self._postRequests = True
-        else:
-            self._postRequests = self.config['testing']['post_requests']
 
         self._tradeCurrency = self._set_trade_currency()
         self._stopLoss = self._set_stop_loss()
@@ -132,102 +127,17 @@ class Trader:
 
     def get_stop_loss(self) -> float:
         """Fetches the stop loss multiplier."""
-        return self._stopLoss
+        return self._stopLoss    
 
-    @staticmethod
-    def timestamp() -> str:
-        """Returns a string representation of the current timestamp."""
-        return datetime.now().strftime('%Y-%m-%d %H:%M')
-
-    def test_logger(self):
-        """A logging object for testing. Instead of writing to a file, it will
-        mimic be behaviour, but instead write to stdout.
-        """
-
-        class Logger:
-            @staticmethod
-            def write(msg: str):
-                print(msg)
-
-            @staticmethod
-            def close():
-                pass
-
-        return Logger()
-
-    def _set_logger(self):
-        """Creates and opens the log."""
-        if self._testMode:
-            return self.test_logger()
-
-        timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
-
-        return open(
-            os.path.join('logs', f'{self._tradeSym}_{timestamp}.log'),
-            'a',
-            buffering=1
-        )
-
-    def _set_error_logger(self):
-        """Creates and opens the error log."""
-        if self._testMode:
-            return self.test_logger()
-
-        timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
-
-        return open(
-            os.path.join('logs', f'{self._tradeSym}_{timestamp}.error.log'),
-            'a',
-            buffering=1
-        )
-
-    def _set_output_dataset(self):
-        """Creates and opens the log."""
-        if self._testMode:
-            return self.test_logger()
-
-        timestamp = self.timestamp().replace(':', '.').replace(' ', '_')
-
-        return open(
-            os.path.join('logs', f'{self._tradeSym}_{timestamp}_dataset.csv'),
-            'a',
-            buffering=1
-        )
-
-    def log(self, msg: str) -> None:
-        """Logs a new entry.
-
-        Args:
-            msg - (str) Message to log.
-        """
-        self._logger.write(f'{self.timestamp()}\t{msg}\n')
-
-    def log_error(self, msg: str) -> None:
-        """Logs an error message.
-
-        Args:
-            msg - (str) Message to log.
-        """
-        print(msg)
-        self._errLogger.write(f'{self.timestamp()}\t{msg}\n')
-
-    def add_dataset(self, msg) -> None:
-        """Adds to the dataset."""
-        self._outputDataset.write(f'{self.timestamp()}|{msg}\n')
-
-    def add_closing_price(self, price: float) -> None:
-        """Adds a new closing price.
-
-        Args:
-            price - (float) Closing price.
-        """
-        self._closes.append(price)
-
-    def trade(self):
+    async def trade(self, close: float):
         """Main controller for trading. The method will run the defined
         strategies and make a purchase/sale when relevant and update the log.
+
+        Args:
+            close - (float) Latest closing price.
         """
         try:
+            self.closes.append(close)
             closes = np.array(self.closes)
 
             # Run each strategy and collect the results.
