@@ -78,14 +78,13 @@ plt.grid()
 
 ax2 = ax.twinx()
 
+ax.plot(df['Timestamp'], df['RSI Buy'], 'g.', markersize=4)
+ax.plot(df['Timestamp'], df['RSI Sell'], 'r.', markersize=4)
+ax.plot(df['Timestamp'], df['Boll Buy'], 'g*', markersize=4)
+ax.plot(df['Timestamp'], df['Boll Sell'], 'r*', markersize=4)
+ax.plot(df['Timestamp'], df['Signal Buy'], 'g^', markersize=10)
+ax.plot(df['Timestamp'], df['Signal Sell'], 'r^', markersize=10)
 
-ax2.plot(df['Timestamp'], df['RSI Buy'], 'g.', markersize=4)
-ax2.plot(df['Timestamp'], df['RSI Sell'], 'r.', markersize=4)
-ax2.plot(df['Timestamp'], df['Boll Buy'], 'g*', markersize=4)
-ax2.plot(df['Timestamp'], df['Boll Sell'], 'r*', markersize=4)
-ax2.plot(df['Timestamp'], df['Signal Buy'], 'g^', markersize=10)
-ax2.plot(df['Timestamp'], df['Signal Sell'], 'r^', markersize=10)
+ax2.plot(df['Timestamp'], df['RSI Value'], lw=.75, alpha=0.5, color='purple')
 
-plt.draw()
-plt.pause(0.01)
 plt.show()
