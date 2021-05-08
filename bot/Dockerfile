@@ -12,14 +12,6 @@ RUN apt update -y \
   && apt install -y python3-pip \
   && apt install -y wget
 
-# Install TA-lib
-RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
-  && tar -xzf ta-lib-0.4.0-src.tar.gz \
-  && cd ta-lib/ \
-  && ./configure --prefix=/usr \
-  && make \
-  && make install
-
 RUN mkdir -p app
 
 WORKDIR /app

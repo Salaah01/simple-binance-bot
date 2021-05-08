@@ -37,27 +37,6 @@ def args_parser():
         help='Percentage of available balance to use during buy operation\
             (25=25%%).'
     )
-    argsParser.add_argument(
-        '-s',
-        '--trade-symbol',
-        action='store',
-        required=True,
-        help='Trade symbol.'
-    )
-    argsParser.add_argument(
-        '-A',
-        '--asset',
-        action='store',
-        required=True,
-        help='Asset.'
-    )
-    argsParser.add_argument(
-        '-o',
-        '--coin-owned',
-        action='store_true',
-        default=False,
-        help='Coin is owned.'
-    )
 
     args = argsParser.parse_args()
 

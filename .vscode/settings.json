@@ -1,15 +1,14 @@
 {
   "cSpell.words": [
-    "BBANDS",
-    "ETHGBP",
     "Strat",
     "Vals",
     "filt",
-    "matype",
-    "nbdevdn",
-    "nbdevup",
+    "klines",
     "noqa",
     "talib"
+  ],
+  "cSpell.ignoreRegExpList": [
+    ".*?(GBP|USDT)"
   ],
   "python.linting.flake8Enabled": true,
   "python.linting.enabled": true
