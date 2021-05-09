@@ -1,7 +1,5 @@
 """Applies the Bollinger stategory on a collection of closing prices."""
 
-from typing import Callable, Optional
-from collections import namedtuple
 import numpy as np
 import pandas as pd
 from .strategy_base import Strategy
@@ -37,7 +35,7 @@ class Bollinger(Strategy):
             Lower={df["Lower"].iat[-1]}')
 
         # Calculate buy/sell signals.
-        if df['Close'].iat[-1] > df['Upper'].iat[-1] * 0.9 and coinsOwned:
+        if df['Close'].iat[-1] > df['Upper'].iat[-1] and coinsOwned:
             self.log('BOLLINGER: SELL')
             decision = -1
 

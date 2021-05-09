@@ -9,6 +9,7 @@ import numpy as np
 import websocket
 from send_order_signal import SendOrderSignal
 from binance.enums import SIDE_BUY, SIDE_SELL
+from binance.exceptions import BinanceAPIException
 from strategies import RSI, Bollinger
 
 
@@ -143,7 +144,7 @@ class Trader:
                 [stratResult['decision'] for stratResult in stratResults]
             )
             self.stop_loss(close)
-            self.update_dataset(stratResults)
+            self.update_dataset(close, stratResults)
 
         except Exception:
             err = traceback.format_exc()
@@ -225,7 +226,7 @@ class Trader:
                     self.purchasedPrice = close
 
                     self.log('SIGNAL: BOUGHT')
-                    print('\033[92mSIGNAL BOUGHT.\033[0m')
+                    print(f'\033[92mSIGNAL BOUGHT {self.tradeSymbol}.\033[0m')
 
                 else:
                     self.ownCoins = False
@@ -253,7 +254,6 @@ class Trader:
                     )
                 )
 
-                print(f'\033[92mSELLING {quantity}\033[0m')
                 res = self.signalDispatcher.send_signal(
                     SIDE_SELL,
                     self.tradeSymbol,
@@ -266,7 +266,7 @@ class Trader:
                     self.ownCoins = False
                     self._purchasedPrice = 0
                     self.log('SIGNAL: SOLD')
-                    print('\033[92mSIGNAL SOLD.\033[0m')
+                    print(f'\033[92mSIGNAL SOLD {self.tradeSymbol}.\033[0m')
 
                 else:
                     self.ownCoins = True
@@ -291,7 +291,7 @@ class Trader:
         if (self.purchasedPrice
                 and close <= self.purchasedPrice * self.get_stop_loss()):
             print('\033[92mSELLING TO PREVENT STOP LOSS.\033[0m')
-
+            self.log('STOP LOSS SELLING')
             if self._postRequests:
                 quantity = self.signalDispatcher.apply_filters(
                     self.tradeSymbol,
@@ -299,7 +299,6 @@ class Trader:
                         self.tradeSymbol.replace(self.tradeSymbol, '')
                     )
                 )
-                print(f'\033[92mSELLING {quantity}\033[0m')
 
                 res = self.signalDispatcher.send_signal(
                     SIDE_SELL,
@@ -313,7 +312,7 @@ class Trader:
                     self.ownCoins = False
                     self.purchasedPrice = 0
                     self.log('SIGNAL: SOLD')
-                    print('\033[92mSIGNAL SOLD.\033[0m')
+                    print(f'\033[92mSIGNAL SOLD {self.tradeSymbol}.\033[0m')
 
                 else:
                     self.ownCoins = True
@@ -327,11 +326,12 @@ class Trader:
                 self.ownCoins = False
                 self.purchasedPrice = 0
 
-    def update_dataset(self, results: List[dict]) -> None:
+    def update_dataset(self, close: float, results: List[dict]) -> None:
         """Logs information from running the strategies into the dataset log.
 
         Args:
-            results - ([dict]) Collection of result dictionaries which should
+            close - (float) Closing price.
+            results - (dict[]) Collection of result dictionaries which should
                 contain a `results` and `decision` key with respective values.
         """
 
@@ -355,7 +355,7 @@ class Trader:
         resultVals = [str(result) for result in resultVals]
 
         # Convert any numpy floats to strings
-        self.add_dataset('|'.join(resultVals))
+        self.add_dataset('|'.join([str(close)] + resultVals))
 
     def _set_logger(self):
         """Creates and opens the log."""
@@ -458,8 +458,15 @@ class Trader:
 
         # Loading historical data.
         print(f'Loading historical data for {self.tradeSymbol}')
-        self.closes = self.signalDispatcher.historical_data(self.tradeSymbol)
-        print(f'Historical data loaded for {self.tradeSymbol}')
+        try:
+            self.closes = self.signalDispatcher.historical_data(
+                self.tradeSymbol
+            )
+            print(f'\033[92mData loaded for {self.tradeSymbol}\033[0m')
+
+        except BinanceAPIException:
+            print(f'\033[91mFailed loading data loaded for\
+                {self.tradeSymbol}\033[0m')
 
     def on_close(self, ws: websocket.WebSocketApp):
         """Method to run when the socket is closed.
