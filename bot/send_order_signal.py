@@ -149,7 +149,7 @@ class SendOrderSignal:
         self,
         tradeSymbol: str,
         interval: str = Client.KLINE_INTERVAL_1MINUTE,
-        dateFromStr: str = '25 mins ago UTC'
+        dateFromStr: str = '20 mins ago UTC'
     ) -> List[float]:
         """Returns a set of historical closing data.
 
