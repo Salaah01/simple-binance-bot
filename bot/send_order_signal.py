@@ -143,7 +143,7 @@ class SendOrderSignal:
             if filt['filterType'] == 'LOT_SIZE':
                 return balance >= float(filt['minQty'])
         else:
-            return True
+            return False
 
     def historical_data(
         self,

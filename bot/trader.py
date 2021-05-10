@@ -2,6 +2,7 @@
 
 import os
 import json
+import time
 from typing import List
 import traceback
 from datetime import datetime
@@ -296,7 +297,7 @@ class Trader:
                 quantity = self.signalDispatcher.apply_filters(
                     self.tradeSymbol,
                     self.signalDispatcher.asset_balance(
-                        self.tradeSymbol.replace(self.tradeSymbol, '')
+                        self.tradeSymbol.replace(self._tradeCurrency, '')
                     )
                 )
 
@@ -439,6 +440,18 @@ class Trader:
         """Adds to the dataset."""
         self._outputDataset.write(f'{self.timestamp()}|{msg}\n')
 
+    def load_historical_data(self) -> None:
+        """Prepends historical data onto the dataset."""
+        try:
+            self.closes = self.signalDispatcher.historical_data(
+                self.tradeSymbol
+            ) + self.closes
+            print(f'\033[92mData loaded for {self.tradeSymbol}\033[0m')
+
+        except BinanceAPIException:
+            print(f'\033[91mFailed loading data loaded for\
+                {self.tradeSymbol}\033[0m')
+
     def on_open(self, ws: websocket.WebSocketApp):
         """Method to run when the socket is opened.
 
@@ -453,20 +466,15 @@ class Trader:
             self.tradeSymbol
         )
         if self.ownCoins:
-            self.log(f'Set {self.tradeSymbol} to owned.')
-            print(f'Set {self.tradeSymbol} to owned.')
+            self.log(f'Setting {self.tradeSymbol} to owned.')
+            print(f'\033[92mSetting {self.tradeSymbol} to owned.\033[0m')
 
         # Loading historical data.
-        print(f'Loading historical data for {self.tradeSymbol}')
-        try:
-            self.closes = self.signalDispatcher.historical_data(
-                self.tradeSymbol
-            )
-            print(f'\033[92mData loaded for {self.tradeSymbol}\033[0m')
-
-        except BinanceAPIException:
-            print(f'\033[91mFailed loading data loaded for\
-                {self.tradeSymbol}\033[0m')
+        # Creating a 30s delay between capturing historical data to allow
+        # coin state to load before capturing historical data in case of IP
+        # ban.
+        time.sleep(30)
+        self.load_historical_data()
 
     def on_close(self, ws: websocket.WebSocketApp):
         """Method to run when the socket is closed.
@@ -486,9 +494,10 @@ class Trader:
             ws - (websocket.WebSocketApp) Websocket object.
             message - (json) Message returned from websocket.
         """
+        print(f'{self.tradeSymbol} {self.ownCoins}')
         try:
             # Retrieve data from the websocket and progress on once a closing
-            # price ha been registered.
+            # price has been registered.
             msg = json.loads(message)
             candle = msg['k']
 
