@@ -4,6 +4,7 @@
     "Syms",
     "Vals",
     "filt",
+    "genfromtxt",
     "klines",
     "noqa",
     "talib"
