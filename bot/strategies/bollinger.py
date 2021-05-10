@@ -24,6 +24,7 @@ class Bollinger(Strategy):
         # Convert the closing prices into a Pandas dataframe and add columns
         # with certain statistical information that will help calculate the
         # Bollinger value.
+        npCloses = npCloses[-period + 1:]
         df = pd.DataFrame(npCloses, columns=['Close'])
 
         df['SMA'] = df['Close'].rolling(window=period).mean()
