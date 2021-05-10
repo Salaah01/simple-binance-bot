@@ -2,7 +2,9 @@
 singals
 """
 
+import time
 import json
+from datetime import timedelta
 from copy import deepcopy
 from multiprocessing import Process
 from trader import Trader
@@ -57,10 +59,23 @@ def main():
     config = load_config(args_parser())
 
     processes = []
-    for tradeSymbol in set(config['trade_symbols']):
+
+    # To prevent an IP ban between each connection, we will simulate a delay
+    # pause before each connection.
+    tradeSyms = set(config['trade_symbols'])
+    totalSyms = len(tradeSyms)
+    delaySecs = 5
+
+    for idx, tradeSymbol in enumerate(tradeSyms):
         process = Process(target=run_trader, args=[config, tradeSymbol])
         process.start()
         processes.append(process)
+
+        print(
+            f'{idx+1} of {totalSyms} Set up. ETA: {timedelta(seconds=totalSyms-idx+1)}',
+            end='\r'
+        )
+        time.sleep(delaySecs)
 
     for process in processes:
         process.join()

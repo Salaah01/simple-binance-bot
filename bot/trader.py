@@ -459,7 +459,7 @@ class Trader:
             ws - (websocket.WebSocketApp) Websocket object.
         """
 
-        print(f'\033[92mConnected to {self.tradeSymbol} opened.\033[0m')
+        print(f'\033[92m\nConnected to {self.tradeSymbol} opened.\033[0m')
 
         self.ownCoins = self.signalDispatcher.has_coins(
             self._tradeCurrency,
@@ -494,7 +494,6 @@ class Trader:
             ws - (websocket.WebSocketApp) Websocket object.
             message - (json) Message returned from websocket.
         """
-        print(f'{self.tradeSymbol} {self.ownCoins}')
         try:
             # Retrieve data from the websocket and progress on once a closing
             # price has been registered.
