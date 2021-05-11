@@ -169,4 +169,4 @@ pip-selfcheck.json
 logs
 .keys.json
 linux_venv
-tmp.py
+tmp*

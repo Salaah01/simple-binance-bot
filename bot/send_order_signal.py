@@ -4,6 +4,7 @@ import math
 import json
 import traceback
 from typing import List
+import numpy as np
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
 
@@ -96,16 +97,22 @@ class SendOrderSignal:
             float - Quantity to buy/sell.
         """
 
-        filters = self.get_client().get_symbol_info(tradeSymbol)['filters']
+        symbolInfo = self.get_client().get_symbol_info(tradeSymbol)
+
+        filters = symbolInfo['filters']
         for filt in filters:
             if filt['filterType'] == 'LOT_SIZE':
                 stepSize = float(filt['stepSize'])
 
                 # Adding an higher level round to remove any floating point
                 # errors.
-                return round(math.floor(quantity / stepSize) * stepSize, 6)
-        else:
-            return quantity
+                quantity = round(
+                    math.floor(quantity / stepSize) * stepSize,
+                    symbolInfo['quotePrecision']
+                )
+                break
+
+        return np.format_float_positional(quantity)
 
     def asset_balance(self, asset: str) -> float:
         """Fetch the asset balance.
