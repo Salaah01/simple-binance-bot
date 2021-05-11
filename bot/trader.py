@@ -1,5 +1,6 @@
 """Applies strategies and sends buy/sell orders for a single coin."""
 
+import sys
 import os
 import json
 import time
@@ -58,6 +59,8 @@ class Trader:
         # `True` as will be set to `False` once the headings has been written
         # to the file.
         self._createDatasetHead = True
+
+        self._historyDataFetched = False
 
     @property
     def closes(self) -> list:
@@ -473,8 +476,9 @@ class Trader:
         # Creating a 30s delay between capturing historical data to allow
         # coin state to load before capturing historical data in case of IP
         # ban.
-        time.sleep(30)
-        self.load_historical_data()
+        if not self._historyDataFetched:
+            time.sleep(30)
+            self.load_historical_data()
 
     def on_close(self, ws: websocket.WebSocketApp):
         """Method to run when the socket is closed.
@@ -482,10 +486,18 @@ class Trader:
          Args:
             ws - (websocket.WebSocketApp) Websocket object.
         """
-        self._logger.close()
-        self._errLogger.close()
-        self._outputDataset.close()
+
+        # Attempt to reopen the connection
+
         print(f'\033[91mConnection to {self.tradeSymbol} closed.\033[0m')
+        try:
+            time.sleep(10)
+            self.run()
+        except KeyboardInterrupt:
+            self._logger.close()
+            self._errLogger.close()
+            self._outputDataset.close()
+            sys.exit()
 
     def on_message(self, ws: websocket.WebSocketApp, message: json) -> None:
         """Action to perform whenever a new message is received.
