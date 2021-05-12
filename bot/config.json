@@ -18,6 +18,9 @@
     },
     "bollinger": {
       "period": 20
+    },
+    "ema": {
+      "period": 14
     }
   },
   "testing": {
