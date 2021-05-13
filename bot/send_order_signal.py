@@ -32,7 +32,7 @@ class SendOrderSignal:
         """
 
         def decorate(self, *args, **kwargs):
-            retryAfter = self._client().response.headers.get('Retry-After')
+            retryAfter = self.get_client().response.headers.get('Retry-After')
             if retryAfter:
                 print(
                     f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
