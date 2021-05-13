@@ -4,7 +4,7 @@ import math
 import json
 import traceback
 import time
-from typing import List, Callable
+from typing import List, Callable, Optional
 import numpy as np
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
@@ -16,7 +16,11 @@ class SendOrderSignal:
     def __init__(self):
         self._client = self._set_client()
 
-    def respect_request_limit(fn, *args, **kwargs) -> Callable:
+    def respect_request_limit(
+        fn: Optional[Callable] = None,
+        *args,
+        **kwargs
+    ) -> Callable:
         """Delays a call whilst if the headers are asking us to limit the
         number of request.
 
@@ -35,7 +39,8 @@ class SendOrderSignal:
                 )
                 time.sleep(int(retryAfter))
 
-            fn(self, *args, **kwargs)
+            if fn:
+                fn(self, *args, **kwargs)
 
         return decorate
 
