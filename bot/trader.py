@@ -60,9 +60,7 @@ class Trader:
         # to the file.
         self._createDatasetHead = True
 
-        # This is set to `True` to prevent IP bans.
-        # Relating code may soon be removed.
-        self._historyDataFetched = True
+        self._historyDataFetched = False
 
     @property
     def closes(self) -> list:

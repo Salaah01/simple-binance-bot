@@ -3,7 +3,8 @@
 import math
 import json
 import traceback
-from typing import List
+import time
+from typing import List, Callable
 import numpy as np
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
@@ -14,6 +15,29 @@ class SendOrderSignal:
 
     def __init__(self):
         self._client = self._set_client()
+
+    def respect_request_limit(fn, *args, **kwargs) -> Callable:
+        """Delays a call whilst if the headers are asking us to limit the
+        number of request.
+
+        Args:
+            fn - (Callable) Function/method to call.
+
+        Returns:
+            Callable - A decorator function.
+        """
+
+        def decorate(self, *args, **kwargs):
+            retryAfter = self._client().response.headers.get('Retry-After')
+            if retryAfter:
+                print(
+                    f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
+                )
+                time.sleep(int(retryAfter))
+
+            fn(self, *args, **kwargs)
+
+        return decorate
 
     @staticmethod
     def _set_client() -> Client:
@@ -27,6 +51,7 @@ class SendOrderSignal:
         """Returns the client object."""
         return self._client
 
+    @respect_request_limit
     def send_signal(
         self,
         side: str,
@@ -85,6 +110,7 @@ class SendOrderSignal:
                 'error': traceback.format_exc()
             }
 
+    @respect_request_limit
     def apply_filters(self, tradeSymbol: str, quantity: float) -> float:
         """Applies filters onto the `quantity` so that the value send later
         for trade is valid.
@@ -114,6 +140,7 @@ class SendOrderSignal:
 
         return np.format_float_positional(quantity)
 
+    @respect_request_limit
     def asset_balance(self, asset: str) -> float:
         """Fetch the asset balance.
 
@@ -125,6 +152,7 @@ class SendOrderSignal:
         """
         return float(self.get_client().get_asset_balance(asset=asset)['free'])
 
+    @respect_request_limit
     def has_coins(self, asset: str, tradeSymbol: str) -> bool:
         """Checks if the user has coins that they can trade. This will require
         the `tradeSymbol` to be provided as supposed to just the `asset`. By
@@ -152,6 +180,7 @@ class SendOrderSignal:
         else:
             return False
 
+    @respect_request_limit
     def historical_data(
         self,
         tradeSymbol: str,
