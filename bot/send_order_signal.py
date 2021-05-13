@@ -159,7 +159,7 @@ class SendOrderSignal:
                 )
                 break
 
-        return np.format_float_positional(quantity)
+        return format(quantity, '.8f')
 
     @respect_request_limit
     def asset_balance(self, asset: str) -> float:
