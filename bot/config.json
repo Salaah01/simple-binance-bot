@@ -21,6 +21,10 @@
     },
     "ema": {
       "period": 14
+    },
+    "keltnerchannel": {
+      "period": 20,
+      "atr_multi": 2
     }
   },
   "testing": {
