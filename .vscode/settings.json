@@ -1,10 +1,13 @@
 {
   "cSpell.words": [
+    "Keltner",
     "Strat",
     "Syms",
     "Vals",
+    "emas",
     "filt",
     "genfromtxt",
+    "iloc",
     "klines",
     "noqa",
     "talib"

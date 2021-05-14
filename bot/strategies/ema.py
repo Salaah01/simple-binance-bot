@@ -1,42 +1,33 @@
 import numpy as np
-from .strategy_base import Strategy
+import pandas as pd
 
 
-class EMA(Strategy):
+class EMA:
     """Uses a set of closing date to create an EMA."""
 
-    def apply_indicator(
-        self,
-        closePrices: np.array,
-        config: dict,
-        coinsOwned: bool
-    ) -> dict:
+    @staticmethod
+    def calc_ema(npCloses: np.array, period: int) -> pd.Series:
+        """Calculates the EMA.
 
-        # Parse the config.
-        period = config['period'] * 2
+        Args:
+            npCloses - (np.array) Collection of closing prices.
+            period - (int) Period.
 
-        # Edgecase
-        if len(closePrices) < period + 1:
-            return {
-                'results': {'EMA': '', 'EMA Decision': 0},
-                'decision': 0
-            }
+        Returns:
+            pd.Series - EMAs for `npCloses`.
+        """
 
-        # k behaves like a scaler.
-        k = 2/((period/2)+1)        # 2.5
+        pricesSeries = pd.Series(npCloses)
 
-        latestClose = closePrices[-1]
-        npCloses = npCloses[-period:]
+        # For EMA, for anything before the `period` we calculate the simple
+        # moving average (SMA). With the data past the period (`rest`), we use
+        # the EMA calculation where for some elements, it will require the SMA.
+        sma = pricesSeries.rolling(window=period).mean()[:period]
+        rest = pricesSeries[period:]
 
-        emas = []
-        for day in range(int(period/2)-1, len(npCloses)):
-            if day == period/2:
-                emas.append(sum(npCloses[:(period/2)]) / (period/2)
-            else:
-                emaVal=(latestClose * k) + (emas[-1] * (1 - k))
-                emas.append(emaVal)
+        return pd.concat([sma, rest]).ewm(span=period, adjust=False).mean()
 
-        return {
-                'results': {'EMA': emas[-1], 'EMA Decision': 0},
-                'decision': 0
-            }
+
+if __name__ == '__main__':
+    e = EMA().calc_ema(np.array([2, 4, 6, 8, 12, 14, 16, 18, 20]), 2)
+    print(e)
