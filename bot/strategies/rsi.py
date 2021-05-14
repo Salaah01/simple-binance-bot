@@ -74,3 +74,6 @@ class RSI(Strategy):
             'results': {'RSI Value': rsiValue, 'RSI Decision': decision},
             'decision': decision
         }
+
+    @staticmethod
+    def calc_rsi(npCloses: np.array, period: int) -> float:
