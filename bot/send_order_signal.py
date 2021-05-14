@@ -1,11 +1,11 @@
 """Connects and sends signals to the Binance server."""
 
+from typing import Callable, Optional
 import math
 import json
 import traceback
 import time
-from typing import List, Callable, Optional
-import numpy as np
+from collections import namedtuple
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
 
@@ -35,7 +35,7 @@ class SendOrderSignal:
             retryAfter = self.get_client().response.headers.get('Retry-After')
             if retryAfter:
                 print(
-                    f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
+                    f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
                 )
                 time.sleep(int(retryAfter))
 
@@ -86,11 +86,11 @@ class SendOrderSignal:
         retryAfter = self.get_client().response.headers.get('Retry-After')
         if retryAfter:
             print(
-                f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
+                f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
             )
             print('\033[91mSKIPPING THIS BUY/SELL ORDER.\033[0m')
             time.sleep(int(retryAfter))
-            
+
             return {
                 'success': False,
                 'params': {
@@ -207,7 +207,7 @@ class SendOrderSignal:
         tradeSymbol: str,
         interval: str = Client.KLINE_INTERVAL_1MINUTE,
         dateFromStr: str = '20 mins ago UTC'
-    ) -> List[float]:
+    ) -> namedtuple:
         """Returns a set of historical closing data.
 
         Args:
@@ -217,11 +217,28 @@ class SendOrderSignal:
                 data.
 
         Returns:
-            list - Collection of closing prices.
+            namedtuple - Collection of closing, low and high prices.
         """
+
+        # Information on the returned values can be found in:
+        # https://github.com/sammchardy/python-binance/blob/30efaffc303a55855889a607879e9ca0eacb5221/binance/client.py#L828
+
         data = self.get_client().get_historical_klines(
             tradeSymbol,
             interval,
             dateFromStr
         )
-        return [float(d[4]) for d in data]
+
+        closes = []
+        lows = []
+        highs = []
+
+        for d in data:
+            closes.append(float(d[4]))
+            lows.append(float(d[3]))
+            highs.append(float(d[2]))
+
+        return namedtuple(
+            'historicalData',
+            ['closes', 'lows', 'highs']
+        )(closes, lows, highs)
