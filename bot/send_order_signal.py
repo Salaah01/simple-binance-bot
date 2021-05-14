@@ -40,7 +40,7 @@ class SendOrderSignal:
                 time.sleep(int(retryAfter))
 
             if fn:
-                fn(self, *args, **kwargs)
+                return fn(self, *args, **kwargs)
 
         return decorate
 
@@ -56,7 +56,6 @@ class SendOrderSignal:
         """Returns the client object."""
         return self._client
 
-    @respect_request_limit
     def send_signal(
         self,
         side: str,
@@ -83,6 +82,23 @@ class SendOrderSignal:
             with the paramaters provided an a `error` key with the traceback
             message.
         """
+
+        retryAfter = self.get_client().response.headers.get('Retry-After')
+        if retryAfter:
+            print(
+                f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
+            )
+            print('\033[91mSKIPPING THIS BUY/SELL ORDER.\033[0m')
+            time.sleep(int(retryAfter))
+            
+            return {
+                'success': False,
+                'params': {
+                    'side': side,
+                    'quantity': quantity
+                },
+                'error': 'Request limit reached.'
+            }
 
         # Set the order method to use based on whether the order is a test
         # order or not.
@@ -143,7 +159,7 @@ class SendOrderSignal:
                 )
                 break
 
-        return np.format_float_positional(quantity)
+        return format(quantity, '.8f')
 
     @respect_request_limit
     def asset_balance(self, asset: str) -> float:

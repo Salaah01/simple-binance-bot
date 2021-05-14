@@ -31,9 +31,15 @@ class RSI(Strategy):
         avgLosses = []
         relativeStrength = []
         relativeStrengthIndex = []
+        
+        # Edgecase
+        if len(npCloses) < period + 1:
+            return {
+                'results': {'RSI Value': '', 'RSI Decision': 0},
+                'decision': 0
+            }
 
-        if len(npCloses) >= 3 * period:
-            npCloses = npCloses[-(3*period):]
+        npCloses = npCloses[-period - 1:]
 
         for c in range(1, len(npCloses)):
             # Check gains / loses
