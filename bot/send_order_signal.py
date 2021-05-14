@@ -37,7 +37,7 @@ class SendOrderSignal:
                 print(
                     f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
                 )
-                time.sleep(int(retryAfter))
+                time.sleep(int(retryAfter) or 60)
 
             if fn:
                 return fn(self, *args, **kwargs)
@@ -89,7 +89,7 @@ class SendOrderSignal:
                 f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'
             )
             print('\033[91mSKIPPING THIS BUY/SELL ORDER.\033[0m')
-            time.sleep(int(retryAfter))
+            time.sleep(int(retryAfter) or 60)
             
             return {
                 'success': False,
