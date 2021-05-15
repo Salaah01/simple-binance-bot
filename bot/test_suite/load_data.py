@@ -47,7 +47,7 @@ totalFiles = len(files)
 insertSQL = """INSERT INTO prices
             (symbol, open_time, open_price, high_price, low_price, close_price,
              volume, close_time, quote_asset_volume, no_traders,
-             taker_buy_base_asset_vol, taker_buy_quote_asser_vol)
+             taker_buy_base_asset_vol, taker_buy_quote_asset_vol)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             """
 

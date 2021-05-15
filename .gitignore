@@ -171,3 +171,4 @@ logs
 linux_venv
 tmp*
 database.ini
+test_results*

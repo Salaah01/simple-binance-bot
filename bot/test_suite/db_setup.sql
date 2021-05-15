@@ -14,7 +14,7 @@ CREATE TABLE prices (
   quote_asset_volume FLOAT,
   no_traders INTEGER,
   taker_buy_base_asset_vol FLOAT,
-  taker_buy_quote_asser_vol FLOAT,
+  taker_buy_quote_asset_vol FLOAT,
   CONSTRAINT fk_symbol FOREIGN KEY(symbol) REFERENCES symbols(symbol),
   UNIQUE (open_time, symbol)
 );
