@@ -16,8 +16,8 @@ from db_connection import connection
 
 # Set the base config.
 with open(os.path.join(ROOT, 'config.json')) as configFile:
-    CONFIG = json.load(configFile)
-
+    CONFIG = json.load(configFile)   
+  
 
 class TestStrategy:
     def __init__(
@@ -154,13 +154,17 @@ class TestStrategy:
 
         # Averages
         winsRatio = round(len(wins)/(len(wins) + len(losses)) * 100, 2)
-        winsAvg = round(sum(wins) / (len(wins) or 1) * 100, 2)
+        winsAvg = round(sum(wins) / (len(wwwwins) or 1) * 100, 2)
         lossesAvg = round(sum(losses) / (len(losses) or 1) * 100, 2)
         pnlChange = round(pnl - startPnl, 2)
+        totalTrades = (len(wins) + len(losses)) / 2
+        gainPerTrade = round(pnlChange / totalTrades, 2)
 
+        print(f'TOTAL TRADES      : {(len(wins) + len(losses)) / 2}')
         print(f'STARTING PNL      : {startPnl}')
         print(f'END PNL           : {round(pnl, 2)}')
         print(f'PNL CHANGE        : {pnlChange}')
+        print(f'GAINS PER TRADE   : {gainPerTrade}')
         print(f'PNL WIN/LOSS      : {round((pnlChange)/startPnl * 100, 2)}%')
         print(f'WIN RATIO         : {winsRatio}%')
         print(f'WIN AVERAGE GAIN  : {winsAvg}%')

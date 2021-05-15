@@ -12,6 +12,7 @@
     "keltnerchannels",
     "klines",
     "noqa",
+    "pardir",
     "postgresql",
     "talib"
   ],
