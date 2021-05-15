@@ -14,7 +14,7 @@ class ATR:
         highPrices: np.array
     ):
 
-        if not len(closePrices) < period + 1:
+        if len(closePrices) < period + 1:
             raise Exception('Not enough periods provided.')
 
         # Truncate the lists to be equal to the length of the period.

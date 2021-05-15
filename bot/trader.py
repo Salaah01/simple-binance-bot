@@ -41,6 +41,8 @@ class Trader:
 
         # Vars to help keep a track of the state.
         self._closes = []
+        self._lowPrices = []
+        self._highPrices = []
         self._purchasedPrice = 0
 
         self._tradeCurrency = self._set_trade_currency()
@@ -52,7 +54,6 @@ class Trader:
         self._outputDataset = self._set_output_dataset()
 
         self._strategies = [RSI, Bollinger]
-
         self._ownCoins = False
 
         # The dataset log is a CSV. The variable below will initialise as
@@ -197,10 +198,14 @@ class Trader:
         """
         stratResults = []
         for strat in self._strategies:
+            config = self.config['strategies'][strat.__name__.lower()]
+
             stratResults.append(strat(self.log).apply_indicator(
                 npCloses,
-                self.config['strategies'][strat.__name__.lower()],
-                self.ownCoins
+                config,
+                self.ownCoins,
+                *[getattr(self, arg) for arg
+                  in config.get('additional_args', [])]
             ))
         return stratResults
 
@@ -446,9 +451,14 @@ class Trader:
     def load_historical_data(self) -> None:
         """Prepends historical data onto the dataset."""
         try:
-            self.closes = self.signalDispatcher.historical_data(
-                self.tradeSymbol
-            ) + self.closes
+            historicalData = self.signalDispatcher.historical_data(
+                self.tradeSymbol,
+            )
+
+            self.closes = historicalData.closes + self.closes
+            self._lowPrices = historicalData.lows + self._lowPrices
+            self._highPrices = historicalData.highs + self._highPrices
+
             print(f'\033[92mData loaded for {self.tradeSymbol}\033[0m')
 
         except BinanceAPIException:
@@ -506,6 +516,9 @@ class Trader:
             ws - (websocket.WebSocketApp) Websocket object.
             message - (json) Message returned from websocket.
         """
+
+        # Message response information can be found by visting:
+        # https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md
         try:
             # Retrieve data from the websocket and progress on once a closing
             # price has been registered.
@@ -516,11 +529,15 @@ class Trader:
                 return
 
             close = float(candle['c'])
+            low = float(candle['l'])
+            high = float(candle['h'])
 
             self.log(f'CONTROLLER: CLOSED AT {close}')
             print(f'{self.tradeSymbol} CLOSED AT: {close}')
 
             self.closes.append(close)
+            self._lowPrices.append(low)
+            self._highPrices.append(high)
 
             # To save memory and prevent a infinitely long closes array,
             # truncate the size to whatever we actually need.
@@ -529,6 +546,8 @@ class Trader:
             while (len(self.closes)
                    > self.config['defaults']['closes_array_size']):
                 self.closes.pop(0)
+                self._lowPrices.pop(0)
+                self._highPrices.pop(0)
 
             self.trade(close)
 
