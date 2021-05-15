@@ -4,6 +4,7 @@
     "Strat",
     "Syms",
     "Vals",
+    "dbname",
     "emas",
     "filt",
     "genfromtxt",
@@ -11,6 +12,7 @@
     "keltnerchannels",
     "klines",
     "noqa",
+    "postgresql",
     "talib"
   ],
   "cSpell.ignoreRegExpList": [

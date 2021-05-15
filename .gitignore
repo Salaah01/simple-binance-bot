@@ -170,3 +170,4 @@ logs
 .keys.json
 linux_venv
 tmp*
+database.ini
