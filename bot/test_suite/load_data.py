@@ -58,12 +58,12 @@ for fID, _file in enumerate(files):
     symbol = re.search('[A-Z]{5,}', _file)[0]
     if symbol not in symbols:
         cur.execute('INSERT INTO symbols VALUES (%s)', (symbol,))
-        symbols.add(symbol)        
+        symbols.add(symbol)
 
     # Load the data
     with open(_file) as csvFile:
         reader = csv.reader(csvFile)
- 
+
         for row in reader:
             if not reader.line_num % 1000 or reader.line_num == 44640:
                 progress = f'{round(reader.line_num / 44640 * 100)}%'
@@ -72,7 +72,7 @@ for fID, _file in enumerate(files):
                     end='\r'
                 )
             row = [float(r) for r in row]
-            
+
             # Convert the rows with epoch time to timestamps.
             for idx in [0, 6]:
                 row[idx] = epoch_to_datetime(row[idx])
@@ -96,7 +96,7 @@ for fID, _file in enumerate(files):
             except Exception:
                 conn.rollback()
                 print(f'\nFailing row: {row}')
-                raise Exception(traceback.format_exc()) 
+                raise Exception(traceback.format_exc())
             finally:
                 conn.commit()
 
@@ -105,4 +105,3 @@ for fID, _file in enumerate(files):
             (_file.split(os.sep)[-1],)
         )
         conn.commit()
-

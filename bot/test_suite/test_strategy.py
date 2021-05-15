@@ -1,23 +1,21 @@
 """Tests strategies."""
-
 import sys
 import os
 ROOT = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 sys.path.append(ROOT)
-
-import json
-from typing import List, Optional
-from collections import namedtuple
-from datetime import datetime
-import numpy as np
-from etaprogress.progress import ProgressBar
-from strategies import RSI, Bollinger
-from db_connection import connection
+import json  # noqa E402
+from typing import List, Optional  # noqa E402
+from collections import namedtuple  # noqa E402
+from datetime import datetime  # noqa E402
+import numpy as np  # noqa E402
+from etaprogress.progress import ProgressBar  # noqa E402
+from strategies import RSI, Bollinger  # noqa E402
+from db_connection import connection  # noqa E402
 
 # Set the base config.
 with open(os.path.join(ROOT, 'config.json')) as configFile:
-    CONFIG = json.load(configFile)   
-  
+    CONFIG = json.load(configFile)
+
 
 class TestStrategy:
     def __init__(
@@ -30,7 +28,7 @@ class TestStrategy:
         self.conn = connection()
         self.cur = self.conn.cursor()
 
-        if symbols is None: 
+        if symbols is None:
             self.symbols = self.load_symbols()
         else:
             self.symbols = symbols
@@ -45,7 +43,7 @@ class TestStrategy:
 
         Args:
             symbol - (str) Trade symbol.
-        
+
         Returns
             Generator for a list of dictionaries containing data from the
                 database.
@@ -65,14 +63,14 @@ class TestStrategy:
         keys = ['openTime', 'symbol', 'openPrice', 'highprice', 'lowPrice',
                 'closePrice', 'volume', 'closeTime', 'quoteAssetVolume',
                 'noTraders', 'takerBuyBaseAssetVol', 'takeBuyQuoteAssetVol']
-        
+
         results = self.cur.fetchall()
         return namedtuple(
             'loadedData',
             ['data', 'count']
         )((dict(zip(keys, result)) for result in results), len(results))
 
-    def test_strategies(self, strategies:List, symbol: str):
+    def test_strategies(self, strategies: List, symbol: str):
         """Test a list of strategies."""
 
         closes = []
@@ -85,10 +83,10 @@ class TestStrategy:
         purchasePrice = 0
 
         loadedData = self.load_data(symbol)
-        ownCoin =  False
+        ownCoin = False
 
         outputFile = open(
-            f"test_results_{datetime.now().strftime('%Y-%m-%d %H.%M')}_{symbol}.csv",
+            f"test_results_{datetime.now().strftime('%Y-%m-%d %H.%M')}_{symbol}.csv",  # noqa: E501
             'w+',
         )
 
@@ -100,10 +98,10 @@ class TestStrategy:
             results = []
 
             closes.append(data['closePrice'])
-            
+
             for strategy in strategies:
                 config = self.config['strategies'][strategy.__name__.lower()]
-                
+
                 result = strategy(lambda _: None).apply_indicator(
                     np.array(closes),
                     config,
@@ -122,7 +120,7 @@ class TestStrategy:
                 ownCoin = False
                 pnl += data['closePrice'] * unitsOwned
                 unitsOwned = 0
-                
+
                 priceDiff = ((data['closePrice'] - purchasePrice)
                              / purchasePrice)
 
@@ -130,7 +128,7 @@ class TestStrategy:
                     wins.append(priceDiff)
                 else:
                     losses.append(priceDiff)
-            
+
             # Write the results to a csv.
             if writeHeaders:
                 headers = ['Open Time', 'Close Price', 'PnL']
@@ -139,14 +137,14 @@ class TestStrategy:
 
                 outputFile.write(f"{'|'.join(headers)}\n")
                 writeHeaders = False
-            
+
             resultVals = [str(data['openTime']), str(data['closePrice']),
                           str(pnl)]
 
             for res in results:
                 resultVals += [str(r) for r in res['results'].values()]
             outputFile.write(f"{'|'.join(resultVals)}\n")
-            
+
             # Update progress
             if not idx % 100 or idx == loadedData.count:
                 progressBar.numerator = idx
@@ -154,7 +152,7 @@ class TestStrategy:
 
         # Averages
         winsRatio = round(len(wins)/(len(wins) + len(losses)) * 100, 2)
-        winsAvg = round(sum(wins) / (len(wwwwins) or 1) * 100, 2)
+        winsAvg = round(sum(wins) / (len(wins) or 1) * 100, 2)
         lossesAvg = round(sum(losses) / (len(losses) or 1) * 100, 2)
         pnlChange = round(pnl - startPnl, 2)
         totalTrades = (len(wins) + len(losses)) / 2
@@ -169,6 +167,7 @@ class TestStrategy:
         print(f'WIN RATIO         : {winsRatio}%')
         print(f'WIN AVERAGE GAIN  : {winsAvg}%')
         print(f'LOSS AVERAGE GAIN : {lossesAvg}%')
+
 
 if __name__ == '__main__':
     TestStrategy().test_strategies([RSI, Bollinger], 'BTCGBP')
