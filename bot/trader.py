@@ -343,6 +343,39 @@ class Trader:
         if self._inStopLoss and close >= self.closes[-2]:
             self._inStopLoss = False
 
+            # Force a purchase
+            print('\033[92mFORCING A PURCHASE AFTER STOP LOSS.\033[0m')
+            self.log('FORCING A PURCHASE AFTER STOP LOSS.')
+            if self._postRequests:
+                res = self.signalDispatcher.send_signal(
+                    SIDE_BUY,
+                    self.tradeSymbol,
+                    self.buy_quantity(close),
+                    self._testMode
+                )
+
+                # Send buys signal.
+                if res['success']:
+                    self.ownCoins = True
+                    self.purchasedPrice = close
+
+                    self.log('SIGNAL: BOUGHT')
+                    print(f'\033[92mSIGNAL BOUGHT {self.tradeSymbol}.\033[0m')
+
+                else:
+                    self.ownCoins = False
+                    self.purchasedPrice = 0
+
+                    self.log('SIGNAL: ERROR BUYING')
+                    self.log_error(res['error'])
+                    self.log_error(res['params'])
+
+            else:
+                # The post request mode would equal False during testing,
+                # so assume that the request has gone through.
+                self.ownCoins = True
+                self.purchasedPrice = close
+
     def update_dataset(self, close: float, results: List[dict]) -> None:
         """Logs information from running the strategies into the dataset log.
 
