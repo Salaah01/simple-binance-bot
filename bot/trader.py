@@ -340,7 +340,7 @@ class Trader:
                 self.purchasedPrice = 0
 
         # Check if out of stop loss.
-        if self._inStopLoss and close > self.closes[-2]:
+        if self._inStopLoss and close >= self.closes[-2]:
             self._inStopLoss = False
 
     def update_dataset(self, close: float, results: List[dict]) -> None:

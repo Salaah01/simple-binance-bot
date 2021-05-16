@@ -81,7 +81,8 @@ class TestStrategy:
         self,
         strategies: List,
         symbol: str,
-        stopLoss: bool = False
+        stopLoss: bool = False,
+        buyAfterSL: bool = False,
     ) -> None:
         """Test a list of strategies. Writes results into a file and prints a
         summary of the test results.
@@ -89,8 +90,9 @@ class TestStrategy:
         Args:
             strategies - (List) collection of strategies.
             symbol - (str) Trade symbol.
-            stopLoss - (bool) Should the stop loss be used?    
-
+            stopLoss - (bool) Should the stop loss be used?
+            buyAfterSL - (bool) Force a purchase once the prices drop seems to
+                flatten after a stop loss.
         Returns:
             None
         """
@@ -178,12 +180,15 @@ class TestStrategy:
                     priceDiff = ((data['closePrice'] - purchasePrice)
                                  / purchasePrice)
 
+                    purchasePrice = 0
+
                     if priceDiff >= 0:
                         wins.append(priceDiff)
                     else:
                         losses.append(priceDiff)
 
                 elif (stopLoss
+                      and ownCoin
                       and self.stopLoss(purchasePrice, data['closePrice'])):
 
                     ownCoin = False
@@ -192,13 +197,21 @@ class TestStrategy:
 
                     priceDiff = ((data['closePrice'] - purchasePrice)
                                  / purchasePrice)
-                    losses.append(priceDiff)
 
+                    purchasePrice = 0
+                    losses.append(priceDiff)
                     stopLossCount += 1
                     inStopLoss = True
 
-                elif inStopLoss and data['closePrice'] > closes[-2]:
+                elif inStopLoss and data['closePrice'] >= closes[-2]:
                     inStopLoss = False
+
+                    # Force a buy after the stop loss period.
+                    if buyAfterSL:
+                        ownCoin = True
+                        unitsOwned = buyPrice / data['closePrice']
+                        pnl -= buyPrice
+                        purchasePrice = data['closePrice']
 
                 # Write the results to a csv.
                 if writeHeaders:
@@ -263,6 +276,6 @@ class TestStrategy:
 
 
 if __name__ == '__main__':
-    TestStrategy().test_strategies([KeltnerChannels], 'BTCGBP', True)
-    # TestStrategy().test_strategies([RSI, Bollinger], 'BTCGBP', True)
+    # TestStrategy().test_strategies([KeltnerChannels], 'BTCGBP', True, True)
+    TestStrategy().test_strategies([RSI, Bollinger], 'BTCGBP', True, False)
     # TestStrategy().test_strategies([RSI, Bollinger], 'BNBUSDT')

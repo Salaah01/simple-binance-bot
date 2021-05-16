@@ -25,7 +25,7 @@
     "keltnerchannels": {
       "ema_period": 20,
       "atr_period": 20,
-      "atr_multi": 1,
+      "atr_multi": 2,
       "additional_args": [
         "_lowPrices",
         "_highPrices"
