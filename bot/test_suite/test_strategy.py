@@ -277,5 +277,5 @@ class TestStrategy:
 
 if __name__ == '__main__':
     # TestStrategy().test_strategies([KeltnerChannels], 'BTCGBP', True, True)
-    TestStrategy().test_strategies([RSI, Bollinger], 'BTCGBP', True, False)
+    TestStrategy().test_strategies([RSI, Bollinger], 'BTCGBP', True, True)
     # TestStrategy().test_strategies([RSI, Bollinger], 'BNBUSDT')

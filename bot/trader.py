@@ -340,7 +340,7 @@ class Trader:
                 self.purchasedPrice = 0
 
         # Check if out of stop loss.
-        if self._inStopLoss and close >= self.closes[-2]:
+        elif self._inStopLoss and close >= self.closes[-2]:
             self._inStopLoss = False
 
             # Force a purchase
