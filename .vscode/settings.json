@@ -4,6 +4,7 @@
     "Strat",
     "Syms",
     "Vals",
+    "dbname",
     "emas",
     "filt",
     "genfromtxt",
@@ -11,11 +12,14 @@
     "keltnerchannels",
     "klines",
     "noqa",
-    "talib"
+    "pardir",
+    "postgresql",
+    "talib",
+    "timeit"
   ],
   "cSpell.ignoreRegExpList": [
     ".*?(GBP|USDT)"
   ],
   "python.linting.flake8Enabled": true,
-  "python.linting.enabled": true
+  "python.linting.enabled": true,
 }
