@@ -14,7 +14,8 @@
     "noqa",
     "pardir",
     "postgresql",
-    "talib"
+    "talib",
+    "timeit"
   ],
   "cSpell.ignoreRegExpList": [
     ".*?(GBP|USDT)"

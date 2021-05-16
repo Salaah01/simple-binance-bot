@@ -44,6 +44,7 @@ class Trader:
         self._lowPrices = []
         self._highPrices = []
         self._purchasedPrice = 0
+        self._inStopLoss = False
 
         self._tradeCurrency = self._set_trade_currency()
         self._stopLoss = self._set_stop_loss()
@@ -219,7 +220,8 @@ class Trader:
             decisions - (int[]) List of decisions.
         """
 
-        if all(decision == 1 for decision in decisions):
+        if (all(decision == 1 for decision in decisions)
+                and not self._inStopLoss):
             self.log('CONTROLLER: BUY')
             if self._postRequests:
                 res = self.signalDispatcher.send_signal(
@@ -301,6 +303,8 @@ class Trader:
                 and close <= self.purchasedPrice * self.get_stop_loss()):
             print('\033[92mSELLING TO PREVENT STOP LOSS.\033[0m')
             self.log('STOP LOSS SELLING')
+            self._inStopLoss = True
+
             if self._postRequests:
                 quantity = self.signalDispatcher.apply_filters(
                     self.tradeSymbol,
@@ -334,6 +338,10 @@ class Trader:
                 # so assume that the request has gone through.
                 self.ownCoins = False
                 self.purchasedPrice = 0
+
+        # Check if out of stop loss.
+        if self._inStopLoss and close > self.closes[-2]:
+            self._inStopLoss = False
 
     def update_dataset(self, close: float, results: List[dict]) -> None:
         """Logs information from running the strategies into the dataset log.
