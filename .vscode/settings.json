@@ -5,6 +5,7 @@
     "Syms",
     "Vals",
     "dbname",
+    "dropna",
     "emas",
     "filt",
     "genfromtxt",
@@ -14,6 +15,8 @@
     "noqa",
     "pardir",
     "postgresql",
+    "stoch",
+    "stochrsi",
     "talib",
     "timeit"
   ],

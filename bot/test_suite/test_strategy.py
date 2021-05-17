@@ -11,7 +11,7 @@ from collections import namedtuple  # noqa E402
 from datetime import datetime  # noqa E402
 import numpy as np  # noqa E402
 from etaprogress.progress import ProgressBar  # noqa E402
-from strategies import RSI, Bollinger, KeltnerChannels  # noqa E402
+from strategies import RSI, Bollinger, KeltnerChannels, StochRSI, EMABuy100
 from db_connection import connection  # noqa E402
 
 # Set the base config.
@@ -277,5 +277,6 @@ class TestStrategy:
 
 if __name__ == '__main__':
     # TestStrategy().test_strategies([KeltnerChannels], 'BTCGBP', True, True)
-    TestStrategy().test_strategies([RSI, Bollinger], 'BTCGBP', True, True)
-    # TestStrategy().test_strategies([RSI, Bollinger], 'BNBUSDT')
+    # TestStrategy().test_strategies([KeltnerChannels, StochRSI, EMABuy100], 'BTCGBP', True, True)
+    # TestStrategy().test_strategies([RSI, Bollinger, EMABuy100], 'BNBUSDT')
+    TestStrategy().test_strategies([StochRSI, Bollinger, EMABuy100], 'BNBUSDT')

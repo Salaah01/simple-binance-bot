@@ -36,7 +36,7 @@ class StochRSI(Strategy):
         overboughtLimit = config['overbought_limit']
         oversoldLimit = config['oversold_limit']
 
-        # Edgecase to prevent innacuracy of results and preventing the usage
+        # Edgecase to prevent inaccuracy of results and preventing the usage
         # of Simple Moving Average over Exponential Moving Average.
         if len(closePrices) < period*2:
             return {
@@ -48,7 +48,6 @@ class StochRSI(Strategy):
 
         stochRSIValue = self.calc_rsi(
             closePrices, period, smoothK=3, smoothD=3).stochrsi.iloc[-1]
-        print(stochRSIValue)
         self.log(f'RSI: {stochRSIValue}')
 
         if stochRSIValue >= overboughtLimit and coinsOwned:

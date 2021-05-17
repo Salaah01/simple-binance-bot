@@ -4,10 +4,11 @@
 import os
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
-
-fileName = input('Dataset file name: ')
-csvPath = os.path.join('bot', 'logs', fileName)
+# fileName = input('Dataset file name: ')
+# csvPath = os.path.join('bot', 'logs', fileName)
+csvPath = 'tmp.csv'
 df = pd.read_csv(csvPath, sep='|')
 
 

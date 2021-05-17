@@ -27,6 +27,7 @@
     "ema": {
       "period": 14
     },
+    "emabuy100": {},
     "keltnerchannels": {
       "ema_period": 20,
       "atr_period": 20,
