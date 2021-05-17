@@ -1,3 +1,5 @@
+"""Applies the Stochastic RSI strategy on a collection of closing prices."""
+
 from collections import namedtuple
 import numpy as np
 import pandas as pd
@@ -8,7 +10,7 @@ except ImportError:
 
 
 class StochRSI(Strategy):
-    """Applies the Stochastic RSI onto a collection of closing prices."""
+    """Applies Stochastic RSI on a collection of closing prices."""
 
     def apply_indicator(
         self,
@@ -16,13 +18,26 @@ class StochRSI(Strategy):
         config: dict,
         coinsOwned: bool
     ) -> dict:
+        """Calculates the Stochastic RSI and makes a decision on whether to
+        buy/sell.
 
+        Args:
+            closePrices - (np.array) Collection of closing prices.
+            config - (dict) Configurations.
+            coinsOwned - (bool) Is the coin currently owned?
+
+        Returns:
+            dict - Returns a `results` key containing printable results and a
+                `decision` key which decides whether or not to buy/sell.
+        """
+
+        # Parse the config and extract information that will be needed.
         period = config['period']
         overboughtLimit = config['overbought_limit']
         oversoldLimit = config['oversold_limit']
 
         # Edgecase to prevent innacuracy of results and preventing the usage
-        # of sma over ema 
+        # of Simple Moving Average over Exponential Moving Average.
         if len(closePrices) < period*2:
             return {
                 'results': {'RSI Value': '', 'RSI Decision': 0},
@@ -57,6 +72,17 @@ class StochRSI(Strategy):
         smoothK: int,
         smoothD: int
     ) -> namedtuple:
+        """Calculates the Stochastic RSI.
+
+        Args:
+            npCloses - (np.array) Collection of closing prices.
+            period - (int) Period.
+            smoothK - (int) - Mean of stochastic RSI values in list.
+            smoothD - (int) - Mean of smoothK values in list.
+
+        Returns:
+            namedtuple - Stochastic RSI for `npCloses`.
+        """
 
         prices = pd.Series(closingPrices)
 
@@ -94,17 +120,3 @@ class StochRSI(Strategy):
             'stochRSI',
             ['stochrsi', 'stochrsiK', 'stochrsiD']
         )(stochrsi, stochrsiK, stochrsiD)
-
-
-if __name__ == "__main__":
-    # import pandas as pd
-    data = pd.Series([25.89600, 25.88000, 25.92100, 25.92100, 25.86000, 26.00500, 26.00500, 26.01600, 26.00300, 26.04000, 26.05700, 26.12800,
-                      26.11400, 26.11400, 26.03900, 26.091, 26.054, 26.002, 25.854, 25.866, 25.858, 26.009, 25.91, 25.885, 25.908, 25.893, 25.893, 25.911, 25.903])
-    config = {
-        "period": 14,
-        "overbought_limit": 80,
-        "oversold_limit": 20
-    }
-    coinsOwned = True
-    stochrsi = StochRSI().apply_indicator(data, config, coinsOwned)
-    print(stochrsi)
