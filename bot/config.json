@@ -16,6 +16,11 @@
       "overbought_limit": 70,
       "oversold_limit": 30
     },
+    "stochrsi": {
+      "period": 14,
+      "overbought_limit": 80,
+      "oversold_limit": 20
+    },
     "bollinger": {
       "period": 20
     },
