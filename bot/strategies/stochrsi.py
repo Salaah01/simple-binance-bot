@@ -108,4 +108,3 @@ if __name__ == "__main__":
     coinsOwned = True
     stochrsi = StochRSI().apply_indicator(data, config, coinsOwned)
     print(stochrsi)
-
