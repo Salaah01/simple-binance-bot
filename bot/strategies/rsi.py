@@ -25,6 +25,26 @@ class RSI(Strategy):
                 'decision': 0
             }
 
+        rsiValue = self.calc_rsi(npCloses, period)
+
+        self.log(f'RSI: {rsiValue}')
+
+        if rsiValue >= overboughtLimit and coinsOwned:
+            self.log('RSI: SELL')
+            decision = -1
+        elif rsiValue <= oversoldLimit and not coinsOwned:
+            self.log('RSI: BUY')
+            decision = 1
+        else:
+            decision = 0
+
+        return {
+            'results': {'RSI Value': rsiValue, 'RSI Decision': decision},
+            'decision': decision
+        }
+
+    @staticmethod
+    def calc_rsi(npCloses: np.array, period: int) -> float:
         gains = []
         loses = []
         avgGains = []
@@ -34,10 +54,7 @@ class RSI(Strategy):
         
         # Edgecase
         if len(npCloses) < period + 1:
-            return {
-                'results': {'RSI Value': '', 'RSI Decision': 0},
-                'decision': 0
-            }
+            raise Exception("Period too small")
 
         npCloses = npCloses[-period - 1:]
 
@@ -64,22 +81,8 @@ class RSI(Strategy):
                 relativeStrengthIndex.append(
                     100 - (100 / (relativeStrength[-1] + 1)))
 
-        rsiValue = relativeStrengthIndex[-1]
-        self.log(f'RSI: {rsiValue}')
+        return relativeStrengthIndex[-1]
 
-        if rsiValue >= overboughtLimit and coinsOwned:
-            self.log('RSI: SELL')
-            decision = -1
-        elif rsiValue <= oversoldLimit and not coinsOwned:
-            self.log('RSI: BUY')
-            decision = 1
-        else:
-            decision = 0
 
-        return {
-            'results': {'RSI Value': rsiValue, 'RSI Decision': decision},
-            'decision': decision
-        }
 
-    @staticmethod
-    def calc_rsi(npCloses: np.array, period: int) -> float:
+ 
