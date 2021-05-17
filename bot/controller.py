@@ -63,8 +63,14 @@ def main():
     # To prevent an IP ban between each connection, we will simulate a delay
     # pause before each connection.
     tradeSyms = set(config['trade_symbols'])
-    totalSyms = len(tradeSyms)
+
+    # In test mode use only 1 coin.
+    if config['testing']['testing']:
+        tradeSyms = config['trade_symbols'][0: 1]
+
     delaySecs = 5
+
+    totalSyms = len(tradeSyms)
 
     for idx, tradeSymbol in enumerate(tradeSyms):
         process = Process(target=run_trader, args=[config, tradeSymbol])
@@ -72,7 +78,7 @@ def main():
         processes.append(process)
 
         print(
-            f'{idx+1} of {totalSyms} Set up. ETA: {timedelta(seconds=totalSyms-idx+1)}',
+            f'{idx+1} of {totalSyms} Set up. ETA: {timedelta(seconds=totalSyms-idx+1)}',  # noqa: E501
             end='\r'
         )
         time.sleep(delaySecs)

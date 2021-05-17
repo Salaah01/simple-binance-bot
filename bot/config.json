@@ -2,8 +2,8 @@
   "defaults": {
     "interval": "1m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_{{interval}}",
-    "stop_loss_percent": 5,
-    "closes_array_size": 25
+    "stop_loss_percent": 10,
+    "closes_array_size": 45
   },
   "buy_options": {
     "test_mode": false,
@@ -26,6 +26,15 @@
     },
     "ema": {
       "period": 14
+    },
+    "keltnerchannels": {
+      "ema_period": 20,
+      "atr_period": 20,
+      "atr_multi": 2,
+      "additional_args": [
+        "_lowPrices",
+        "_highPrices"
+      ]
     }
   },
   "testing": {

@@ -41,7 +41,10 @@ class Trader:
 
         # Vars to help keep a track of the state.
         self._closes = []
+        self._lowPrices = []
+        self._highPrices = []
         self._purchasedPrice = 0
+        self._inStopLoss = False
 
         self._tradeCurrency = self._set_trade_currency()
         self._stopLoss = self._set_stop_loss()
@@ -52,7 +55,6 @@ class Trader:
         self._outputDataset = self._set_output_dataset()
 
         self._strategies = [RSI, Bollinger]
-
         self._ownCoins = False
 
         # The dataset log is a CSV. The variable below will initialise as
@@ -197,10 +199,14 @@ class Trader:
         """
         stratResults = []
         for strat in self._strategies:
+            config = self.config['strategies'][strat.__name__.lower()]
+
             stratResults.append(strat(self.log).apply_indicator(
                 npCloses,
-                self.config['strategies'][strat.__name__.lower()],
-                self.ownCoins
+                config,
+                self.ownCoins,
+                *[getattr(self, arg) for arg
+                  in config.get('additional_args', [])]
             ))
         return stratResults
 
@@ -214,7 +220,8 @@ class Trader:
             decisions - (int[]) List of decisions.
         """
 
-        if all(decision == 1 for decision in decisions):
+        if (all(decision == 1 for decision in decisions)
+                and not self._inStopLoss):
             self.log('CONTROLLER: BUY')
             if self._postRequests:
                 res = self.signalDispatcher.send_signal(
@@ -296,6 +303,8 @@ class Trader:
                 and close <= self.purchasedPrice * self.get_stop_loss()):
             print('\033[92mSELLING TO PREVENT STOP LOSS.\033[0m')
             self.log('STOP LOSS SELLING')
+            self._inStopLoss = True
+
             if self._postRequests:
                 quantity = self.signalDispatcher.apply_filters(
                     self.tradeSymbol,
@@ -329,6 +338,43 @@ class Trader:
                 # so assume that the request has gone through.
                 self.ownCoins = False
                 self.purchasedPrice = 0
+
+        # Check if out of stop loss.
+        elif self._inStopLoss and close >= self.closes[-2]:
+            self._inStopLoss = False
+
+            # Force a purchase
+            print('\033[92mFORCING A PURCHASE AFTER STOP LOSS.\033[0m')
+            self.log('FORCING A PURCHASE AFTER STOP LOSS.')
+            if self._postRequests:
+                res = self.signalDispatcher.send_signal(
+                    SIDE_BUY,
+                    self.tradeSymbol,
+                    self.buy_quantity(close),
+                    self._testMode
+                )
+
+                # Send buys signal.
+                if res['success']:
+                    self.ownCoins = True
+                    self.purchasedPrice = close
+
+                    self.log('SIGNAL: BOUGHT')
+                    print(f'\033[92mSIGNAL BOUGHT {self.tradeSymbol}.\033[0m')
+
+                else:
+                    self.ownCoins = False
+                    self.purchasedPrice = 0
+
+                    self.log('SIGNAL: ERROR BUYING')
+                    self.log_error(res['error'])
+                    self.log_error(res['params'])
+
+            else:
+                # The post request mode would equal False during testing,
+                # so assume that the request has gone through.
+                self.ownCoins = True
+                self.purchasedPrice = close
 
     def update_dataset(self, close: float, results: List[dict]) -> None:
         """Logs information from running the strategies into the dataset log.
@@ -446,9 +492,14 @@ class Trader:
     def load_historical_data(self) -> None:
         """Prepends historical data onto the dataset."""
         try:
-            self.closes = self.signalDispatcher.historical_data(
-                self.tradeSymbol
-            ) + self.closes
+            historicalData = self.signalDispatcher.historical_data(
+                self.tradeSymbol,
+            )
+
+            self.closes = historicalData.closes + self.closes
+            self._lowPrices = historicalData.lows + self._lowPrices
+            self._highPrices = historicalData.highs + self._highPrices
+
             print(f'\033[92mData loaded for {self.tradeSymbol}\033[0m')
 
         except BinanceAPIException:
@@ -506,6 +557,9 @@ class Trader:
             ws - (websocket.WebSocketApp) Websocket object.
             message - (json) Message returned from websocket.
         """
+
+        # Message response information can be found by visting:
+        # https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md
         try:
             # Retrieve data from the websocket and progress on once a closing
             # price has been registered.
@@ -516,11 +570,15 @@ class Trader:
                 return
 
             close = float(candle['c'])
+            low = float(candle['l'])
+            high = float(candle['h'])
 
             self.log(f'CONTROLLER: CLOSED AT {close}')
             print(f'{self.tradeSymbol} CLOSED AT: {close}')
 
             self.closes.append(close)
+            self._lowPrices.append(low)
+            self._highPrices.append(high)
 
             # To save memory and prevent a infinitely long closes array,
             # truncate the size to whatever we actually need.
@@ -529,6 +587,8 @@ class Trader:
             while (len(self.closes)
                    > self.config['defaults']['closes_array_size']):
                 self.closes.pop(0)
+                self._lowPrices.pop(0)
+                self._highPrices.pop(0)
 
             self.trade(close)
 
