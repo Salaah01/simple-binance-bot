@@ -1,9 +1,10 @@
 """Tests trading strategies."""
-from time import time
 import sys
 import os
 ROOT = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 sys.path.append(ROOT)
+from strategies import RSI, Bollinger, KeltnerChannels, StochRSI, EMABuy100  # noqa E402
+from time import time  # noqa E402
 import traceback  # noqa E402
 import json  # noqa E402
 from typing import List, Optional  # noqa E402
@@ -11,7 +12,6 @@ from collections import namedtuple  # noqa E402
 from datetime import datetime  # noqa E402
 import numpy as np  # noqa E402
 from etaprogress.progress import ProgressBar  # noqa E402
-from strategies import RSI, Bollinger, KeltnerChannels, StochRSI, EMABuy100
 from db_connection import connection  # noqa E402
 
 # Set the base config.
@@ -72,6 +72,7 @@ class TestStrategy:
                 'noTraders', 'takerBuyBaseAssetVol', 'takeBuyQuoteAssetVol']
 
         results = self.cur.fetchall()
+        print(len(results))
         return namedtuple(
             'loadedData',
             ['data', 'count']
@@ -275,8 +276,26 @@ class TestStrategy:
         return closePrice <= purchasePrice * multiplier
 
 
+def main():
+
+    def run_strat(strats: List, symbol: str):
+        return TestStrategy().test_strategies(strats, symbol, True, True)
+
+    stratKey = sys.argv[1].lower()
+    tradeSymbol = sys.argv[2].upper()
+
+    strats = {
+        'a': lambda: run_strat([KeltnerChannels, StochRSI], tradeSymbol),
+        'b': lambda: run_strat([KeltnerChannels, StochRSI, EMABuy100],
+                               tradeSymbol),
+        'c': lambda: run_strat([RSI, Bollinger], tradeSymbol),
+        'd': lambda: run_strat([RSI, Bollinger, EMABuy100], tradeSymbol),
+        'e': lambda: run_strat([StochRSI, Bollinger], tradeSymbol),
+        'f': lambda: run_strat([StochRSI, Bollinger, EMABuy100], tradeSymbol)
+    }
+
+    strats[stratKey]()
+
+
 if __name__ == '__main__':
-    # TestStrategy().test_strategies([KeltnerChannels], 'BTCGBP', True, True)
-    # TestStrategy().test_strategies([KeltnerChannels, StochRSI, EMABuy100], 'BTCGBP', True, True)
-    # TestStrategy().test_strategies([RSI, Bollinger, EMABuy100], 'BNBUSDT')
-    TestStrategy().test_strategies([StochRSI, Bollinger, EMABuy100], 'BNBUSDT')
+    main()

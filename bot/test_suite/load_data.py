@@ -8,9 +8,9 @@ from db_connection import connection
 from epoch_to_datetime import epoch_to_datetime
 
 KLINES_DIRS = [
-    # C:\Users\amins4\Downloads\hist_klines\hist_klines
-    os.path.join('C:', os.sep, 'Users', 'amins4',
-                 'Downloads', 'hist_klines', 'hist_klines')
+    'D:\\Documents\\Trading\\hist_klines\\BTC'
+    # os.path.join('C:', os.sep, 'Users', 'amins4',
+    #              'Downloads', 'hist_klines', 'hist_klines')
 
 ]
 
