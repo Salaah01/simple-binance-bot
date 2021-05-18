@@ -51,8 +51,15 @@ def load_config(options) -> dict:
     return deepcopy(config)
 
 
-def run_trader(config: dict, tradeSymbol: str):
-    Trader(config, tradeSymbol).run()
+def run_trader(config: dict, tradeSymbol: str, seed: int) -> None:
+    """Runs an instance of the trader.
+
+    Args:
+        config - (dict) Config dict.
+        tradeSymbol - (str) Trade symbol to trade in.
+        seed - (int) Seed number for selecting strategies to run.
+    """
+    Trader(config, tradeSymbol, seed).run()
 
 
 def main():
@@ -73,7 +80,10 @@ def main():
     totalSyms = len(tradeSyms)
 
     for idx, tradeSymbol in enumerate(tradeSyms):
-        process = Process(target=run_trader, args=[config, tradeSymbol])
+        process = Process(
+            target=run_trader,
+            args=[config, tradeSymbol, idx % 2]
+        )
         process.start()
         processes.append(process)
 

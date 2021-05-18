@@ -12,19 +12,20 @@ import websocket
 from send_order_signal import SendOrderSignal
 from binance.enums import SIDE_BUY, SIDE_SELL
 from binance.exceptions import BinanceAPIException
-from strategies import RSI, Bollinger
+from strategies import RSI, Bollinger, KeltnerChannels, StochRSI, EMABuy100
 
 
 class Trader:
     """Applies strategies and sends buy/sell orders for a single coin."""
 
-    def __init__(self, config: dict, tradeSymbol: str) -> None:
+    def __init__(self, config: dict, tradeSymbol: str, seed: int) -> None:
         """Main controller that will maintain the connection, and send buy/sell
         singals.
 
         Args:
             config - (dict) Set of configurations for the class to use.
             tradeSymbol - (str) Trade symbol
+            seed - (int) Seed number for selecting strategies to run.
         """
 
         self.tradeSymbol = tradeSymbol
@@ -54,7 +55,11 @@ class Trader:
         self._errLogger = self._set_error_logger()
         self._outputDataset = self._set_output_dataset()
 
-        self._strategies = [RSI, Bollinger]
+        if seed == 0:
+            self._strategies = [RSI, Bollinger]
+        else:
+            self._strategies = [KeltnerChannels, StochRSI, EMABuy100]
+
         self._ownCoins = False
 
         # The dataset log is a CSV. The variable below will initialise as

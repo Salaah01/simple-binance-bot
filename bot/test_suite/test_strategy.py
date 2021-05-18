@@ -3,7 +3,8 @@ import sys
 import os
 ROOT = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 sys.path.append(ROOT)
-from strategies import RSI, Bollinger, KeltnerChannels, StochRSI, EMABuy100  # noqa E402
+from strategies import (RSI, Bollinger, KeltnerChannels, StochRSI, EMABuy100,  # noqa E402
+                        EMABuy50And100)
 from time import time  # noqa E402
 import traceback  # noqa E402
 import json  # noqa E402
@@ -142,7 +143,7 @@ class TestStrategy:
             }
         }
 
-        npArraySize = -self.config['defaults']['closes_array_size']
+        npArraySize = self.config['defaults']['closes_array_size']
 
         for idx, data in enumerate(loadedData.data):
             try:
@@ -151,6 +152,12 @@ class TestStrategy:
                 closes.append(data['closePrice'])
                 lows.append(data['lowPrice'])
                 highs.append(data['highPrice'])
+
+                # To save memory, keep the size of the arrays limited.
+                while len(closes) > npArraySize:
+                    closes.pop(0)
+                    lows.pop(0)
+                    highs.pop(0)
 
                 for strategy in strategies:
                     className = strategy.__name__.lower()
@@ -240,12 +247,12 @@ class TestStrategy:
 
         # Results
         mins, secs = divmod(time() - startTime, 60)
-        winsRatio = round(len(wins)/(len(wins) + len(losses)) * 100, 2)
+        winsRatio = round(len(wins)/((len(wins) + len(losses)) or 1) * 100, 2)
         winsAvg = round(sum(wins) / (len(wins) or 1) * 100, 2)
         lossesAvg = round(sum(losses) / (len(losses) or 1) * 100, 2)
         pnlChange = round(pnl - startPnl, 2)
         totalTrades = (len(wins) + len(losses)) / 2
-        gainPerTrade = round(pnlChange / totalTrades, 2)
+        gainPerTrade = round(pnlChange / (totalTrades or 1), 2)
 
         resultsOutputs = [
             f'TIME              : {int(mins)}mins {int(secs)}secs',
@@ -277,7 +284,6 @@ class TestStrategy:
 
 
 def main():
-
     def run_strat(strats: List, symbol: str):
         return TestStrategy().test_strategies(strats, symbol, True, True)
 
@@ -291,7 +297,15 @@ def main():
         'c': lambda: run_strat([RSI, Bollinger], tradeSymbol),
         'd': lambda: run_strat([RSI, Bollinger, EMABuy100], tradeSymbol),
         'e': lambda: run_strat([StochRSI, Bollinger], tradeSymbol),
-        'f': lambda: run_strat([StochRSI, Bollinger, EMABuy100], tradeSymbol)
+        'f': lambda: run_strat([StochRSI, Bollinger, EMABuy100], tradeSymbol),
+        'g': lambda: run_strat([RSI, Bollinger, EMABuy50And100], tradeSymbol),
+        'h': lambda: run_strat([StochRSI, Bollinger, EMABuy50And100],
+                               tradeSymbol),
+        'i': lambda: run_strat([RSI, Bollinger, EMABuy50And100], tradeSymbol),
+        'j': lambda: run_strat([KeltnerChannels, StochRSI, EMABuy100],
+                               tradeSymbol),
+        'k': lambda: run_strat([KeltnerChannels, StochRSI, EMABuy50And100],
+                               tradeSymbol)
     }
 
     strats[stratKey]()

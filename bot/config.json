@@ -3,7 +3,7 @@
     "interval": "1m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_{{interval}}",
     "stop_loss_percent": 10,
-    "closes_array_size": 45
+    "closes_array_size": 101
   },
   "buy_options": {
     "test_mode": false,
@@ -28,6 +28,7 @@
       "period": 14
     },
     "emabuy100": {},
+    "emabuy50and100": {},
     "keltnerchannels": {
       "ema_period": 20,
       "atr_period": 20,
