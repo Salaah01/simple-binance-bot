@@ -20,6 +20,7 @@ tradeSymbols = CONFIG['trade_symbols']
 tradeCurrencies = CONFIG['trade_currencies']
 
 signal = SendOrderSignal()
+failedCoins = []
 for tradeSymbol in tradeSymbols:
     try:
         # Remove the currency from the coin name.
@@ -42,6 +43,13 @@ for tradeSymbol in tradeSymbols:
             print(f'\033[92mSold {tradeSymbol}\033[0m')
         else:
             print(F'\033[0mFAILED TO SELL {tradeSymbol}\033[0m')
+            failedCoins.append(tradeSymbol)
     except Exception:
         print(traceback.format_exc())
         print(f'\033[91m FAILED TO SELL {tradeSymbol}.\033[91m')
+        failedCoins.append(tradeSymbol)
+
+
+# Print out any failed coins that need to be sold separately.
+if failedCoins:
+    print(f'Failed to sell {len(failedCoins)} coins: {failedCoins}')

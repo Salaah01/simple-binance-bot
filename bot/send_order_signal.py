@@ -1,6 +1,7 @@
 """Connects and sends signals to the Binance server."""
 
 from typing import Callable, Optional
+import os
 import math
 import json
 import traceback
@@ -47,7 +48,10 @@ class SendOrderSignal:
     @staticmethod
     def _set_client() -> Client:
         """Set the client object to connect to Binance."""
-        with open('.keys.json', 'r') as keysFile:
+        with open(
+            os.path.join(__file__, os.pardir, '.keys.json'),
+            'r'
+        ) as keysFile:
             keys = json.load(keysFile)
 
         return Client(keys['BINANCE_API_KEY'], keys['BINANCE_SECRET_KEY'])
@@ -90,7 +94,7 @@ class SendOrderSignal:
             )
             print('\033[91mSKIPPING THIS BUY/SELL ORDER.\033[0m')
             time.sleep(int(retryAfter) or 60)
-            
+
             return {
                 'success': False,
                 'params': {
