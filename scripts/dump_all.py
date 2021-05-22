@@ -26,7 +26,7 @@ for tradeSymbol in tradeSymbols:
         # Remove the currency from the coin name.
         symbol = tradeSymbol
         for tradeCurrency in tradeCurrencies:
-            symbol = symbol.rstrip(tradeCurrency)
+            symbol = symbol.replace(tradeCurrency, '')
 
         # Check the asset balance
         balance = signal.asset_balance(symbol)
@@ -54,7 +54,7 @@ for tradeSymbol in tradeSymbols:
             failedCoins.append(tradeSymbol)
     except Exception:
         print(traceback.format_exc())
-        print(f'\033[91m FAILED TO SELL {tradeSymbol}.\033[91m')
+        print(f'\033[91m FAILED TO SELL {tradeSymbol}\nSymbol={symbol}.\033[91m')
         failedCoins.append(tradeSymbol)
 
 
