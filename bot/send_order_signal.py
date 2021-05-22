@@ -89,11 +89,12 @@ class SendOrderSignal:
 
         retryAfter = self.get_client().response.headers.get('Retry-After')
         if retryAfter:
+            sleepTime = int(retryAfter) or 60
             print(
-                f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
+                f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {sleepTime} SECONDS.\033[0m'  # noqa: E501
             )
             print('\033[91mSKIPPING THIS BUY/SELL ORDER.\033[0m')
-            time.sleep(int(retryAfter) or 60)
+            time.sleep(sleepTime)
 
             return {
                 'success': False,
