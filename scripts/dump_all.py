@@ -9,7 +9,7 @@ ROOT = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 sys.path.append(ROOT)
 from bot.send_order_signal import SendOrderSignal  # noqa: E402
 
-TEST_MODE = True
+TEST_MODE = False
 
 
 # Load variables from config file.
@@ -33,11 +33,19 @@ for tradeSymbol in tradeSymbols:
         signal.respect_request_limit()
 
         # If there is no balance, move onto the next coin.
-        if not float(balance):
+        if not balance:
+            continue
+
+        quantity = signal.apply_filters(
+            tradeSymbol,
+            balance
+        )
+
+        if not float(quantity):
             continue
 
         # Sell the assets.
-        res = signal.send_signal(SIDE_SELL, tradeSymbol, balance, TEST_MODE)
+        res = signal.send_signal(SIDE_SELL, tradeSymbol, quantity, TEST_MODE)
         signal.respect_request_limit()
         if res['success']:
             print(f'\033[92mSold {tradeSymbol}\033[0m')
