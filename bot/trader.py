@@ -58,7 +58,7 @@ class Trader:
         if seed == 0:
             self._strategies = [RSI, Bollinger]
         else:
-            self._strategies = [KeltnerChannels, StochRSI, EMABuy100]
+            self._strategies = [KeltnerChannels, StochRSI]
 
         self._ownCoins = False
 
