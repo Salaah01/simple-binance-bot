@@ -49,7 +49,7 @@ class SendOrderSignal:
     def _set_client() -> Client:
         """Set the client object to connect to Binance."""
         with open(
-            os.path.join(__file__, os.pardir, '.keys.json'),
+            os.path.abspath(os.path.join(__file__, os.pardir, '.keys.json')),
             'r'
         ) as keysFile:
             keys = json.load(keysFile)

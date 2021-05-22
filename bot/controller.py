@@ -88,7 +88,7 @@ def main():
         processes.append(process)
 
         print(
-            f'{idx+1} of {totalSyms} Set up. ETA: {timedelta(seconds=totalSyms-idx+1)}',  # noqa: E501
+            f'{idx+1} of {totalSyms} Set up. ETA: {timedelta(seconds=(totalSyms-idx+1)*delaySecs)}',  # noqa: E501
             end='\r'
         )
         time.sleep(delaySecs)
