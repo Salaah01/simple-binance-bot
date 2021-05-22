@@ -63,6 +63,10 @@ def run_trader(config: dict, tradeSymbol: str, seed: int) -> None:
 
 
 def main():
+    # Limits the number of coins to trade in, this is to prevent IP bans or
+    # having to timeout before sending further API requests.
+    NO_COINS_TO_TRADE = 10
+
     config = load_config(args_parser())
 
     processes = []
@@ -80,6 +84,10 @@ def main():
     totalSyms = len(tradeSyms)
 
     for idx, tradeSymbol in enumerate(tradeSyms):
+
+        if idx == NO_COINS_TO_TRADE:
+            break
+
         process = Process(
             target=run_trader,
             args=[config, tradeSymbol, idx % 2]
