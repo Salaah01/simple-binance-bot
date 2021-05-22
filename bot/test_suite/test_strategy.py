@@ -46,11 +46,15 @@ class TestStrategy:
         self.cur.execute('SELECT * FROM symbols')
         return [symbol[0] for symbol in self.cur.fetchall()]
 
-    def load_data(self, symbol: str):
+    def load_data(self, symbol: str, startTS: datetime, endTS: datetime):
         """Loads the data for a given `symbol`.
 
         Args:
             symbol - (str) Trade symbol.
+            startTS - (datetime) The starting point from which the data should
+                be collected.
+            endTS - (datetime) The timestamp point form which the date should
+                be collected.
 
         Returns
             Generator for a list of dictionaries containing data from the
@@ -63,9 +67,11 @@ class TestStrategy:
                       no_traders, taker_buy_base_asset_vol,
                       taker_buy_quote_asset_vol
             FROM prices WHERE symbol = %s
+            AND open_time >= %s
+            AND open_time <= %s
             ORDER BY open_time
             """,
-            (symbol,)
+            (symbol, startTS, endTS)
         )
 
         keys = ['openTime', 'symbol', 'openPrice', 'highPrice', 'lowPrice',
@@ -85,6 +91,8 @@ class TestStrategy:
         symbol: str,
         stopLoss: bool = False,
         buyAfterSL: bool = False,
+        startTS: datetime = datetime.min,
+        endTS: datetime = datetime.max
     ) -> None:
         """Test a list of strategies. Writes results into a file and prints a
         summary of the test results.
@@ -95,6 +103,10 @@ class TestStrategy:
             stopLoss - (bool) Should the stop loss be used?
             buyAfterSL - (bool) Force a purchase once the prices drop seems to
                 flatten after a stop loss.
+            startTS - (datetime) The starting point from which the data should
+                be collected.
+            endTS - (datetime) The timestamp point form which the date should
+                be collected.
         Returns:
             None
         """
@@ -118,7 +130,7 @@ class TestStrategy:
         purchasePrice = 0
         inStopLoss = False
 
-        loadedData = self.load_data(symbol)
+        loadedData = self.load_data(symbol, startTS, endTS)
         ownCoin = False
 
         stratNames = ','.join([strategy.__name__ for strategy in strategies])
@@ -283,9 +295,11 @@ class TestStrategy:
         return closePrice <= purchasePrice * multiplier
 
 
-def main():
+def main(startTS: datetime = datetime.min, endTS: datetime = datetime.max):
+
     def run_strat(strats: List, symbol: str):
-        return TestStrategy().test_strategies(strats, symbol, True, True)
+        return TestStrategy().test_strategies(strats, symbol, True, True,
+                                              startTS, endTS)
 
     stratKey = sys.argv[1].lower()
     tradeSymbol = sys.argv[2].upper()
@@ -312,4 +326,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Set up the start datetime and end datetime. Defaults should be `None`
+    # which will use `datetime.min` and `datetime.max` respectively.
+    START_TIMESTAMP = datetime(2021, 5, 1)
+    END_TIMESTAMP = datetime(2021, 5, 22)
+
+    main(START_TIMESTAMP, END_TIMESTAMP)
