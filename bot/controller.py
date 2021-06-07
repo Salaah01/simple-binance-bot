@@ -4,7 +4,8 @@ singals
 
 import time
 import json
-from datetime import timedelta
+import os
+from datetime import datetime, timedelta
 from copy import deepcopy
 from multiprocessing import Process
 from trader import Trader
@@ -82,6 +83,19 @@ def main():
     delaySecs = 5
 
     totalSyms = min(len(tradeSyms), NO_COINS_TO_TRADE)
+
+    request_wait_time_location = os.path.abspath(
+        os.path.join(
+            __file__,
+            os.pardir,
+            'bot',
+            'request_wait_time.txt'
+        )
+    )
+
+    if not os.path.isfile(request_wait_time_location):
+        with open(request_wait_time_location, mode='w') as f:
+            f.write(datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'))
 
     for idx, tradeSymbol in enumerate(tradeSyms):
 
