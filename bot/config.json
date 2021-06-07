@@ -1,6 +1,6 @@
 {
   "defaults": {
-    "interval": "1m",
+    "interval": "5m",
     "socket_address": "wss://stream.binance.com:9443/ws/{{trade_symbol}}@kline_{{interval}}",
     "stop_loss_percent": 10,
     "closes_array_size": 45
