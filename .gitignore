@@ -171,3 +171,4 @@ linux_venv
 tmp*
 database.ini
 test_results*
+request_wait_time.txt

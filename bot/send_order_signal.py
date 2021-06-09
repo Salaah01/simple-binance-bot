@@ -6,6 +6,7 @@ import math
 import json
 import traceback
 import time
+from datetime import datetime, timedelta
 from collections import namedtuple
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
@@ -33,13 +34,36 @@ class SendOrderSignal:
         """
 
         def decorate(self, *args, **kwargs):
+            request_wait_time_location = os.path.abspath(
+                os.path.join(
+                    __file__,
+                    os.pardir,
+                    'bot',
+                    'request_wait_time.txt'
+                )
+            )
+
+            with open(request_wait_time_location, mode='r') as f:
+                bannedTime = f.readlines()
+                bannedTime = datetime.strptime(''.join(bannedTime),
+                                               '%Y-%m-%d %H:%M:%S')
+
+            if bannedTime > datetime.now():
+                time.sleep((bannedTime - datetime.now()).seconds)
+                return
+
             retryAfter = self.get_client().response.headers.get('Retry-After')
+            
+            sleepSeconds = int(retryAfter) or 60
             if retryAfter:
                 print(
-                    f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
+                    f'\033[94mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
                 )
-                time.sleep(int(retryAfter) or 60)
-
+                with open(request_wait_time_location, 'w') as f:
+                    f.write(datetime.strftime(datetime.now(),
+                                              '%Y-%m-%d %H:%M:%S'))
+                time.sleep(datetime.now()+timedelta(seconds=sleepSeconds))
+                return
             if fn:
                 return fn(self, *args, **kwargs)
 
