@@ -84,7 +84,7 @@ def main():
 
     totalSyms = min(len(tradeSyms), NO_COINS_TO_TRADE)
 
-    request_wait_time_location = os.path.abspath(
+    reqWaitTimeLoc = os.path.abspath(
         os.path.join(
             __file__,
             os.pardir,
@@ -93,8 +93,8 @@ def main():
         )
     )
 
-    if not os.path.isfile(request_wait_time_location):
-        with open(request_wait_time_location, mode='w') as f:
+    if not os.path.isfile(reqWaitTimeLoc):
+        with open(reqWaitTimeLoc, mode='w') as f:
             f.write(datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'))
 
     for idx, tradeSymbol in enumerate(tradeSyms):

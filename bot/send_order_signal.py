@@ -34,7 +34,7 @@ class SendOrderSignal:
         """
 
         def decorate(self, *args, **kwargs):
-            request_wait_time_location = os.path.abspath(
+            reqWaitTimeLoc = os.path.abspath(
                 os.path.join(
                     __file__,
                     os.pardir,
@@ -43,7 +43,7 @@ class SendOrderSignal:
                 )
             )
 
-            with open(request_wait_time_location, mode='r') as f:
+            with open(reqWaitTimeLoc, mode='r') as f:
                 bannedTime = f.readlines()
                 bannedTime = datetime.strptime(''.join(bannedTime),
                                                '%Y-%m-%d %H:%M:%S')
@@ -59,7 +59,7 @@ class SendOrderSignal:
                 print(
                     f'\033[94mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
                 )
-                with open(request_wait_time_location, 'w') as f:
+                with open(reqWaitTimeLoc, 'w') as f:
                     f.write(datetime.strftime(datetime.now(),
                                               '%Y-%m-%d %H:%M:%S'))
                 time.sleep(datetime.now()+timedelta(seconds=sleepSeconds))
