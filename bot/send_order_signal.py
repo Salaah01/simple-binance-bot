@@ -6,7 +6,7 @@ import math
 import json
 import traceback
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import namedtuple
 from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
@@ -38,7 +38,6 @@ class SendOrderSignal:
                 os.path.join(
                     __file__,
                     os.pardir,
-                    'bot',
                     'request_wait_time.txt'
                 )
             )
@@ -49,21 +48,24 @@ class SendOrderSignal:
                                                '%Y-%m-%d %H:%M:%S')
 
             if bannedTime > datetime.now():
-                time.sleep((bannedTime - datetime.now()).seconds)
-                return
+                sleepTime = (bannedTime - datetime.now()).seconds
+                time.sleep(sleepTime)
+                raise Exception(
+                    f'Skipping slept for {sleepTime} seconds (triggered by file).'  # noqa E501
+                )
 
             retryAfter = self.get_client().response.headers.get('Retry-After')
-            
-            sleepSeconds = int(retryAfter) or 60
+
             if retryAfter:
+                sleepTime = int(retryAfter) or 60
                 print(
                     f'\033[94mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
                 )
                 with open(reqWaitTimeLoc, 'w') as f:
                     f.write(datetime.strftime(datetime.now(),
                                               '%Y-%m-%d %H:%M:%S'))
-                time.sleep(datetime.now()+timedelta(seconds=sleepSeconds))
-                return
+                time.sleep(sleepTime)
+                raise Exception(f'Skipping slept for {sleepTime} seconds.')
             if fn:
                 return fn(self, *args, **kwargs)
 
@@ -84,6 +86,7 @@ class SendOrderSignal:
         """Returns the client object."""
         return self._client
 
+    @respect_request_limit
     def send_signal(
         self,
         side: str,
@@ -110,24 +113,6 @@ class SendOrderSignal:
             with the paramaters provided an a `error` key with the traceback
             message.
         """
-
-        retryAfter = self.get_client().response.headers.get('Retry-After')
-        if retryAfter:
-            sleepTime = int(retryAfter) or 60
-            print(
-                f'\033[93mREQUEST LIMIT REACHED. SLEEPING FOR {sleepTime} SECONDS.\033[0m'  # noqa: E501
-            )
-            print('\033[91mSKIPPING THIS BUY/SELL ORDER.\033[0m')
-            time.sleep(sleepTime)
-
-            return {
-                'success': False,
-                'params': {
-                    'side': side,
-                    'quantity': quantity
-                },
-                'error': 'Request limit reached.'
-            }
 
         # Set the order method to use based on whether the order is a test
         # order or not.

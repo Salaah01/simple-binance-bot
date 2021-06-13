@@ -8,15 +8,17 @@ from db_connection import connection
 from epoch_to_datetime import epoch_to_datetime
 
 KLINES_DIRS = [
-    'D:\\Documents\\Trading\\hist_klines\\BTC'
+    '/mnt/d/Documents/Trading/Programs/binance-public-data/data/data'
+    # 'D:\\Documents\\Trading\\Programs\\binance-public-data\\data\\data'
     # os.path.join('C:', os.sep, 'Users', 'amins4',
     #              'Downloads', 'hist_klines', 'hist_klines')
 
 ]
-
+print('starting to connect')
 conn = connection()
 cur = conn.cursor()
 
+print('connected')
 # Fetch all the currently loaded files and symbols.
 cur.execute('SELECT file FROM loaded_files')
 loadedFiles = set([f[0] for f in cur.fetchall()])
@@ -47,7 +49,7 @@ totalFiles = len(files)
 # 10 - Taker buy quote asset volume
 # 11 - Ignore
 
-insertSQL = """INSERT INTO prices
+insertSQL = """
             (symbol, open_time, open_price, high_price, low_price, close_price,
              volume, close_time, quote_asset_volume, no_traders,
              taker_buy_base_asset_vol, taker_buy_quote_asset_vol)
@@ -92,8 +94,13 @@ for fID, _file in enumerate(files):
                 datetime.min.time()
             ) + timedelta(minutes=reader.line_num - 1)
 
+            if re.findall(r'\d{1,}m', _file)[0] == '1m':
+                insertLine = 'INSERT INTO prices_1m\n'
+            else:
+                insertLine = 'INSERT INTO prices_5m\n'
+
             try:
-                cur.execute(insertSQL, [symbol] + row[0: -1])
+                cur.execute(insertLine + insertSQL, [symbol] + row[0: -1])
             except UniqueViolation:
                 pass
             except Exception:

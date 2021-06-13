@@ -26,5 +26,5 @@ def connection(filename: str = 'database.ini', section: str = 'postgresql'):
         raise Exception(f'Section {section} not found in {filename}.')
 
     return psycopg2.connect(
-        f"dbname={db['database']} user={db['user']} password={db['password']} host={db['host']} port={db['port']}"  # noqa: E501
+        f"dbname={db['database']} user={db['user']} password={db['password']} host={db.get('host', 'localhost')} port={db.get('port', 5432)}"  # noqa: E501
     )
