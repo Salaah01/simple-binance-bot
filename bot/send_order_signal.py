@@ -62,10 +62,6 @@ class SendOrderSignal:
                     f'Skipping slept for {sleepTime} seconds.'
                 )
 
-                # raise Exception(
-                #     f'Skipping slept for {sleepTime} seconds (triggered by file).'  # noqa E501
-                # )
-
             retryAfter = self.get_client().response.headers.get('Retry-After')
             self.get_client().response.headers['Retry-After'] = 30
             if retryAfter:
