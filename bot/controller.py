@@ -88,13 +88,12 @@ def main():
         os.path.join(
             __file__,
             os.pardir,
-            'bot',
             'request_wait_time.txt'
         )
     )
 
     if not os.path.isfile(reqWaitTimeLoc):
-        with open(reqWaitTimeLoc, mode='w') as f:
+        with open(reqWaitTimeLoc, 'w+') as f:
             f.write(datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'))
 
     for idx, tradeSymbol in enumerate(tradeSyms):
