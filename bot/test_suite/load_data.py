@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+
+"""Loads historical kline data onto the database."""
 import os
 import re
 import csv
@@ -14,11 +17,9 @@ KLINES_DIRS = [
     #              'Downloads', 'hist_klines', 'hist_klines')
 
 ]
-print('starting to connect')
 conn = connection()
 cur = conn.cursor()
 
-print('connected')
 # Fetch all the currently loaded files and symbols.
 cur.execute('SELECT file FROM loaded_files')
 loadedFiles = set([f[0] for f in cur.fetchall()])

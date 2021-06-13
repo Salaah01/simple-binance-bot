@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """Tests trading strategies."""
 import sys
 import os
@@ -66,7 +68,7 @@ class TestStrategy:
                       close_price, volume, close_time, quote_asset_volume,
                       no_traders, taker_buy_base_asset_vol,
                       taker_buy_quote_asset_vol
-            FROM prices WHERE symbol = %s
+            FROM prices_1m WHERE symbol = %s
             AND open_time >= %s
             AND open_time <= %s
             ORDER BY open_time
@@ -329,6 +331,6 @@ if __name__ == '__main__':
     # Set up the start datetime and end datetime. Defaults should be `None`
     # which will use `datetime.min` and `datetime.max` respectively.
     START_TIMESTAMP = datetime(2021, 5, 1)
-    END_TIMESTAMP = datetime(2021, 5, 22)
+    END_TIMESTAMP = datetime(2021, 6, 16)
 
     main(START_TIMESTAMP, END_TIMESTAMP)

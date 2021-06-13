@@ -12,6 +12,10 @@ from binance.client import Client
 from binance.enums import ORDER_TYPE_MARKET
 
 
+class PreventBanError(Exception):
+    pass
+
+
 class SendOrderSignal:
     """Connects and sends signals to the Binance server."""
 
@@ -49,23 +53,32 @@ class SendOrderSignal:
 
             if bannedTime > datetime.now():
                 sleepTime = (bannedTime - datetime.now()).seconds
+                print(
+                    f'\033[91mSleeping for {sleepTime}. This iteration will be skipped\033[0m'  # noqa E501
+                )
                 time.sleep(sleepTime)
-                raise Exception(
-                    f'Skipping slept for {sleepTime} seconds (triggered by file).'  # noqa E501
+
+                raise PreventBanError(
+                    f'Skipping slept for {sleepTime} seconds.'
                 )
 
-            retryAfter = self.get_client().response.headers.get('Retry-After')
+                # raise Exception(
+                #     f'Skipping slept for {sleepTime} seconds (triggered by file).'  # noqa E501
+                # )
 
+            retryAfter = self.get_client().response.headers.get('Retry-After')
+            self.get_client().response.headers['Retry-After'] = 30
             if retryAfter:
-                sleepTime = int(retryAfter) or 60
+                sleepTime = (int(retryAfter) or 60) + 100
                 print(
-                    f'\033[94mREQUEST LIMIT REACHED. SLEEPING FOR {retryAfter} SECONDS.\033[0m'  # noqa: E501
+                    f'\033[94mREQUEST LIMIT REACHED. SLEEPING FOR {sleepTime} SECONDS.\033[0m'  # noqa: E501
                 )
                 with open(reqWaitTimeLoc, 'w') as f:
                     f.write(datetime.strftime(datetime.now(),
                                               '%Y-%m-%d %H:%M:%S'))
+
+                print(f'\033[91mSleeping for {sleepTime} seconds.\033[0m')
                 time.sleep(sleepTime)
-                raise Exception(f'Skipping slept for {sleepTime} seconds.')
             if fn:
                 return fn(self, *args, **kwargs)
 
