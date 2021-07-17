@@ -66,7 +66,7 @@ def run_trader(config: dict, tradeSymbol: str, seed: int) -> None:
 def main():
     # Limits the number of coins to trade in, this is to prevent IP bans or
     # having to timeout before sending further API requests.
-    NO_COINS_TO_TRADE = 20
+    NO_COINS_TO_TRADE = 10
 
     config = load_config(args_parser())
 
