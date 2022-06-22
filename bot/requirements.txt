@@ -13,7 +13,7 @@ hyperlink==21.0.0
 idna==2.10
 incremental==21.3.0
 mccabe==0.6.1
-numpy==1.20.2
+numpy==1.22.0
 pandas==1.2.4
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
