@@ -34,6 +34,6 @@ Twisted==23.10.0
 txaio==21.2.1
 tzlocal==2.1
 ujson==4.0.2
-urllib3==1.26.18
+urllib3==1.26.19
 websocket-client==0.58.0
 zope.interface==5.4.0
