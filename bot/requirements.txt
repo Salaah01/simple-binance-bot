@@ -10,7 +10,7 @@ cryptography==42.0.4
 dateparser==1.0.0
 flake8==3.9.1
 hyperlink==21.0.0
-idna==2.10
+idna==3.7
 incremental==21.3.0
 mccabe==0.6.1
 numpy==1.22.0
